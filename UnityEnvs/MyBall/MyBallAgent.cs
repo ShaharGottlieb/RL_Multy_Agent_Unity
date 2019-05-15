@@ -22,7 +22,10 @@ public class MyBallAgent : Agent
 
             if (IsDone() == false)
             {
-                SetReward(0.1f);
+                float dist_x = ball.transform.position.x - gameObject.transform.position.x;
+                float dist_z = ball.transform.position.z - gameObject.transform.position.z;
+                float distFromCenter = dist_x * dist_x + dist_z * dist_z;
+                SetReward(1 / (1 + distFromCenter));
             }
         }
         else
@@ -48,7 +51,10 @@ public class MyBallAgent : Agent
             }
             if (IsDone() == false)
             {
-                SetReward(0.1f);
+                float dist_x = ball.transform.position.x - gameObject.transform.position.x;
+                float dist_z = ball.transform.position.z - gameObject.transform.position.z;
+                float distFromCenter = dist_x * dist_x + dist_z * dist_z;
+                SetReward( 1 / (1+distFromCenter) );
             }
         }
 

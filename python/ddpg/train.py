@@ -37,14 +37,15 @@ STEP 1: Set the Training Parameters
 num_episodes=1000
 episode_scores = []
 scores_average_window = 100      
-solved_score = 30     
+solved_score = 300
+load_weights=True
 
 """
 ###################################
 STEP 2: Start the Unity Environment
 # Use the corresponding call depending on your operating system 
 """
-env = UnityEnvironment(file_name=os.path.join("MyBall","Unity Environment.exe"))# - **Mac**: "Banana_Mac/Reacher.app"
+env = UnityEnvironment(file_name=os.path.join("build","Unity Environment.exe"), no_graphics=True)
 # - **Windows** (x86): "Reacher_Windows_x86/Reacher.exe"
 # - **Windows** (x86_64): "Reacher_Windows_x86_64/Reacher.exe"
 # - **Linux** (x86): "Reacher_Linux/Reacher.x86"
@@ -108,6 +109,12 @@ determined above.
 """
 agent = Agent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
 
+# Load trained model weights
+if load_weights:
+    agent.actor_target.load_state_dict(torch.load('ddpgActor_Model.pth'))
+    agent.critic_target.load_state_dict(torch.load('ddpgCritic_Model.pth'))
+    agent.actor_local.load_state_dict(torch.load('ddpgActor_Model.pth'))
+    agent.critic_local.load_state_dict(torch.load('ddpgCritic_Model.pth'))
 
 """
 ###################################
@@ -171,7 +178,7 @@ for i_episode in range(1, num_episodes+1):
 
         # If any unity agent indicates that the episode is done, 
         # then exit episode loop, to begin new episode
-        if np.any(dones):
+        if np.any(dones) or agent_scores>2000:
             break
 
     # Add episode score to Scores and...

@@ -30,7 +30,7 @@ STEP 1: Set the Test Parameters
 ======
         num_episodes (int): number of test episodes
 """
-num_episodes=5            
+num_episodes=5
 
 
 """
@@ -38,7 +38,7 @@ num_episodes=5
 STEP 2: Start the Unity Environment
 # Use the corresponding call depending on your operating system 
 """
-env = UnityEnvironment(file_name=os.path.join("MyBall","Unity Environment.exe"))
+env = UnityEnvironment(file_name=os.path.join("build","Unity Environment.exe"))
 # - **Mac**: "Banana_Mac/Reacher.app"
 # - **Windows** (x86): "Reacher_Windows_x86/Reacher.exe"
 # - **Windows** (x86_64): "Reacher_Windows_x86_64/Reacher.exe"
