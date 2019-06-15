@@ -1,0 +1,6 @@
+Open a new Unity Project ->
+Replace The "Assets" folder in it with this one.
+
+build the project (My Ball) ->
+move build folder to python/ddpg ->
+now you can the test script
