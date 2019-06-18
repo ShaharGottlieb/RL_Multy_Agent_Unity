@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: MyRaceBrain
   m_EditorClassIdentifier: 
   brainParameters:
-    vectorObservationSize: 8
+    vectorObservationSize: 0
     numStackedVectorObservations: 1
     vectorActionSize: 02000000
     cameraResolutions: []
@@ -24,10 +24,10 @@ MonoBehaviour:
   keyContinuousPlayerActions:
   - key: 276
     index: 0
-    value: 1
+    value: -1
   - key: 275
     index: 0
-    value: -1
+    value: 1
   - key: 273
     index: 1
     value: 1

@@ -9,6 +9,8 @@ public class SimpleCarControllers : MonoBehaviour
     private float m_verticalInput;
     private float m_steeringAngle;
 
+    private Vector2 m_input;
+
     public WheelCollider frontDriverW, frontPassengerW;
     public WheelCollider rearDriverW, rearPassengerW;
     public Transform frontDriverT, frontPassengerT;
@@ -18,8 +20,15 @@ public class SimpleCarControllers : MonoBehaviour
 
     public void GetInput()
     {
-        m_horizontalInput = Input.GetAxis("Horizontal");
-        m_verticalInput = Input.GetAxis("Vertical");
+        //m_horizontalInput = Input.GetAxis("Horizontal");
+        //m_verticalInput = Input.GetAxis("Vertical");
+        m_horizontalInput = m_input[0];
+        m_verticalInput = m_input[1];
+    }
+
+    public void SetInput(Vector2 input)
+    {
+        m_input = input;
     }
 
     private void Steer()
