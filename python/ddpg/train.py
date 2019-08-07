@@ -37,7 +37,7 @@ STEP 1: Set the Training Parameters
 num_episodes=1000
 episode_scores = []
 scores_average_window = 100      
-solved_score = 300
+solved_score = 3000
 load_weights=True
 
 """
@@ -45,7 +45,7 @@ load_weights=True
 STEP 2: Start the Unity Environment
 # Use the corresponding call depending on your operating system 
 """
-env = UnityEnvironment(file_name=os.path.join("build","Unity Environment.exe"), no_graphics=True)
+env = UnityEnvironment(file_name=os.path.join("build_race","OurProject.exe"), no_graphics=True)
 # - **Windows** (x86): "Reacher_Windows_x86/Reacher.exe"
 # - **Windows** (x86_64): "Reacher_Windows_x86_64/Reacher.exe"
 # - **Linux** (x86): "Reacher_Linux/Reacher.x86"

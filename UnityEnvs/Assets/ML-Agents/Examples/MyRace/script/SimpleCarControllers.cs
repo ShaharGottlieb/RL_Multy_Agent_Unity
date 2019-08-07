@@ -18,12 +18,29 @@ public class SimpleCarControllers : MonoBehaviour
     public float maxSteerAngle = 30;
     public float motorForce = 50;
 
+    private Vector3 startPos;
+    private Quaternion startRot;
+    private Vector3 startVel;
+
+    private void Start()
+    {
+        startPos = transform.position;
+        startRot = transform.rotation;
+        startVel = gameObject.GetComponent<Rigidbody>().velocity;
+    }
+
     public void GetInput()
     {
         //m_horizontalInput = Input.GetAxis("Horizontal");
         //m_verticalInput = Input.GetAxis("Vertical");
         m_horizontalInput = m_input[0];
         m_verticalInput = m_input[1];
+    }
+
+    public float GetVelocity()
+    {
+        float v = gameObject.GetComponent<Rigidbody>().velocity.magnitude;
+        return (v > 0.1)? v : 0;
     }
 
     public void SetInput(Vector2 input)
@@ -69,5 +86,11 @@ public class SimpleCarControllers : MonoBehaviour
         Steer();
         Accelerate();
         UpdateWheelPoses();
+    }
+
+    public void Reset()
+    {
+        transform.SetPositionAndRotation(startPos,startRot);
+        GetComponent<Rigidbody>().velocity = startVel;
     }
 }

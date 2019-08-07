@@ -38,7 +38,7 @@ num_episodes=5
 STEP 2: Start the Unity Environment
 # Use the corresponding call depending on your operating system 
 """
-env = UnityEnvironment(file_name=os.path.join("build","Unity Environment.exe"))
+env = UnityEnvironment(file_name=os.path.join("build_race","OurProject.exe"))
 # - **Mac**: "Banana_Mac/Reacher.app"
 # - **Windows** (x86): "Reacher_Windows_x86/Reacher.exe"
 # - **Windows** (x86_64): "Reacher_Windows_x86_64/Reacher.exe"
@@ -134,7 +134,7 @@ for i_episode in range(1, num_episodes+1):
     # Otherwise repeat until done == true 
     while True:
         # determine actions for the unity agents from current sate
-        actions = agent.act(states)
+        actions = agent.act(states, add_noise=False)
 
         # send the actions to the unity agents in the environment and receive resultant environment information
         env_info = env.step(actions)[brain_name]        
