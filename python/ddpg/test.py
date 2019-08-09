@@ -31,7 +31,7 @@ STEP 1: Set the Test Parameters
         num_episodes (int): number of test episodes
 """
 num_episodes=5
-
+env_config = {"num_agents": 1}
 
 """
 ###################################
@@ -83,7 +83,7 @@ action_size = brain.vector_action_space_size
 state_size = brain.vector_observation_space_size
 
 # Get number of agents in Environment
-env_info = env.reset(train_mode=True)[brain_name]
+env_info = env.reset(train_mode=True, config=env_config)[brain_name]
 num_agents = len(env_info.agents)
 print('\nNumber of Agents: ', num_agents)
 
@@ -117,7 +117,7 @@ for i_episode in range(1, num_episodes+1):
 
     # reset the unity environment at the beginning of each episode
     # set train mode to false
-    env_info = env.reset(train_mode=False)[brain_name]     
+    env_info = env.reset(train_mode=False, config=env_config)[brain_name]
 
     # get initial state of the unity environment 
     states = env_info.vector_observations

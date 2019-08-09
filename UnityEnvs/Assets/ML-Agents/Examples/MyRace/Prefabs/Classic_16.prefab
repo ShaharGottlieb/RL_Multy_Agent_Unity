@@ -936,6 +936,8 @@ GameObject:
   - component: {fileID: 1818999823}
   - component: {fileID: 1818999822}
   - component: {fileID: 1818999824}
+  - component: {fileID: 4101864095981562021}
+  - component: {fileID: 1196490672120840875}
   m_Layer: 0
   m_Name: Classic_16
   m_TagString: Untagged
@@ -1029,6 +1031,39 @@ MonoBehaviour:
   rearPassengerT: {fileID: 7188949107684252770}
   maxSteerAngle: 30
   motorForce: 200
+--- !u!114 &4101864095981562021
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4279163518767328816}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 35d58d25a9c55cb4cae3f3843e99c610, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  brain: {fileID: 11400000, guid: 7b00f6460746d2e47bbfb7a3d89f32c3, type: 2}
+  agentParameters:
+    agentCameras: []
+    maxStep: 0
+    resetOnDone: 1
+    onDemandDecision: 0
+    numberOfActionsBetweenDecisions: 1
+  firstCheckpoint: {fileID: 0}
+  trackLength: 8
+--- !u!114 &1196490672120840875
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4279163518767328816}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bb172294dbbcc408286b156a2c4b553c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &4279163518767328818
 GameObject:
   m_ObjectHideFlags: 0

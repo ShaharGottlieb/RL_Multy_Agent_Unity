@@ -37,8 +37,9 @@ STEP 1: Set the Training Parameters
 num_episodes=1000
 episode_scores = []
 scores_average_window = 100      
-solved_score = 3000
-load_weights=True
+solved_score = 300
+load_weights=False
+env_config = {"num_agents": 1}
 
 """
 ###################################
@@ -89,7 +90,7 @@ action_size = brain.vector_action_space_size
 state_size = brain.vector_observation_space_size
 
 # Get number of agents in Environment
-env_info = env.reset(train_mode=True)[brain_name]
+env_info = env.reset(train_mode=True, config=env_config)[brain_name]
 num_agents = len(env_info.agents)
 print('\nNumber of Agents: ', num_agents)
 
@@ -140,7 +141,7 @@ That is, if the average score for the previous 100 episodes is greater than solv
 for i_episode in range(1, num_episodes+1):
 
     # reset the unity environment at the beginning of each episode
-    env_info = env.reset(train_mode=True)[brain_name]     
+    env_info = env.reset(train_mode=True, config=env_config)[brain_name]
 
     # get initial state of the unity environment 
     states = env_info.vector_observations
