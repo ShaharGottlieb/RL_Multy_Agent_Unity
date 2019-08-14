@@ -38,7 +38,7 @@ num_episodes=1000
 episode_scores = []
 scores_average_window = 100      
 solved_score = 300
-load_weights=False
+load_weights=True
 env_config = {"num_agents": 1}
 
 """

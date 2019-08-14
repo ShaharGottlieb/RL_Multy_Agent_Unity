@@ -89,7 +89,7 @@ public class MyRaceAgent : Agent
         float[] rayAngles_long = {85f, 90f, 95f };
         float[] rayAngles_mid = { 60f, 75f, 105f, 120f};
         float[] rayAngles_short = { 0f, 180f };
-        string[] detectableObjects = { "wall" };
+        string[] detectableObjects = { "wall", "Player" };
 
         AddVectorObs(rayPercept.Perceive(rayDistance_long, rayAngles_long, detectableObjects, 0.2f, 0));
         AddVectorObs(rayPercept.Perceive(rayDistance_mid, rayAngles_mid, detectableObjects, 0.2f, 0));
