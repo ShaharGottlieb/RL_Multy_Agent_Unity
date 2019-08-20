@@ -1,19 +1,3 @@
-
-"""
-Test DDPG Model for Unity ML-Agents Environments using PyTorch
-
-The example uses a modified version of the Unity ML-Agents Reacher Example Environment.
-The environment includes In this environment, a double-jointed arm can move to target locations. 
-A reward of +0.1 is provided for each step that the agent's hand is in the goal location. 
-Thus, the goal of your agent is to maintain its position at the target location for as many 
-time steps as possible.
-
-Example Developed By:
-Michael Richardson, 2018
-Project for Udacity Danaodgree in Deep Reinforcement Learning (DRL)
-Code Expanded and Adapted from Code provided by Udacity DRL Team, 2018.
-"""
-
 ###################################
 # Import Required Packages
 import torch
@@ -21,7 +5,8 @@ import time
 import random
 import os
 import numpy as np
-from ddpg_agent import Agent
+from ddpg.ddpg_agent import Agent as DDPGAgent
+from maddpg.maddpg_agent import Agent as MADDPGAgent
 from mlagents.envs import UnityEnvironment
 
 """
@@ -102,12 +87,10 @@ Here we initialize an agent using the Unity environments state and action size a
 determined above.
 """
 #Initialize Agent
-agent = Agent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
+agent = MADDPGAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
 
 # Load trained model weights
-agent.actor_local.load_state_dict(torch.load('ddpgActor_Model.pth'))
-agent.critic_local.load_state_dict(torch.load('ddpgCritic_Model.pth'))
-
+agent.LoadWeights()
 """
 ###################################
 STEP 6: Play Banana for specified number of Episodes

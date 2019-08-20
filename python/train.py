@@ -1,20 +1,3 @@
-
-"""
-DDPG (Actor-Critic) RL Example for Unity ML-Agents Environments using PyTorch
-Includes examples of the following DDPG training algorithms:
-
-The example uses a modified version of the Unity ML-Agents Reacher Example Environment.
-The environment includes In this environment, a double-jointed arm can move to target locations. 
-A reward of +0.1 is provided for each step that the agent's hand is in the goal location. 
-Thus, the goal of your agent is to maintain its position at the target location for as many 
-time steps as possible.
-
-Example Developed By:
-Michael Richardson, 2018
-Project for Udacity Danaodgree in Deep Reinforcement Learning (DRL)
-Code Expanded and Adapted from Code provided by Udacity DRL Team, 2018.
-"""
-
 ###################################
 # Import Required Packages
 import torch
@@ -22,8 +5,8 @@ import random
 import numpy as np
 import os
 from collections import deque
-from ddpg_agent import Agent
-#from unityagents import UnityEnvironment
+from ddpg.ddpg_agent import Agent as DDPGAgent
+from maddpg.maddpg_agent import Agent as MADDPGAgent
 from mlagents.envs import UnityEnvironment
 """
 ###################################
@@ -37,8 +20,8 @@ STEP 1: Set the Training Parameters
 num_episodes=1000
 episode_scores = []
 scores_average_window = 100      
-solved_score = 300
-load_weights=True
+solved_score = 10
+load_weights=False
 env_config = {"num_agents": 1}
 
 """
@@ -108,14 +91,11 @@ A DDPG agent initialized with the following parameters.
 Here we initialize an agent using the Unity environments state and action size and number of Agents
 determined above.
 """
-agent = Agent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
+agent = DDPGAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
 
 # Load trained model weights
 if load_weights:
-    agent.actor_target.load_state_dict(torch.load('ddpgActor_Model.pth'))
-    agent.critic_target.load_state_dict(torch.load('ddpgCritic_Model.pth'))
-    agent.actor_local.load_state_dict(torch.load('ddpgActor_Model.pth'))
-    agent.critic_local.load_state_dict(torch.load('ddpgCritic_Model.pth'))
+    agent.LoadWeights()
 
 """
 ###################################
@@ -179,7 +159,7 @@ for i_episode in range(1, num_episodes+1):
 
         # If any unity agent indicates that the episode is done, 
         # then exit episode loop, to begin new episode
-        if np.any(dones) or agent_scores>2000:
+        if np.any(dones):
             break
 
     # Add episode score to Scores and...
@@ -192,10 +172,7 @@ for i_episode in range(1, num_episodes+1):
     print('\nEpisode {}\tEpisode Score: {:.3f}\tAverage Score: {:.3f}'.format(i_episode, episode_scores[i_episode-1], average_score), end="")
     
     # Save trained  Actor and Critic network weights after each episode
-    an_filename = "ddpgActor_Model.pth"
-    torch.save(agent.actor_local.state_dict(), an_filename)
-    cn_filename = "ddpgCritic_Model.pth"
-    torch.save(agent.critic_local.state_dict(), cn_filename)
+    agent.SaveWeights()
 
     # Check to see if the task is solved (i.e,. avearge_score > solved_score over 100 episodes). 
     # If yes, save the network weights and scores and end training.

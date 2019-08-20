@@ -1,15 +1,10 @@
-""""
-Project for Udacity Danaodgree in Deep Reinforcement Learning (DRL)
-Code Expanded and Adapted from Code provided by Udacity DRL Team, 2018.
-"""
-
 import numpy as np
 import random
 import copy
 from collections import namedtuple, deque
 
-from model import Actor, Critic
-from replay_buffer import ReplayBuffer
+from ddpg.ddpg_model import Actor, Critic
+from utils.replay_buffer import ReplayBuffer
 
 import torch
 import torch.nn.functional as F
@@ -24,6 +19,8 @@ LR_ACTOR = 1e-4         # learning rate of the actor
 LR_CRITIC = 1e-4       # learning rate of the critic
 WEIGHT_DECAY = 0.0      # L2 weight decay
 
+an_filename = "ddpgActor_Model.pth"
+cn_filename = "ddpgCritic_Model.pth"
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 class Agent():
@@ -112,7 +109,6 @@ class Agent():
         # Minimize the loss
         self.critic_optimizer.zero_grad()
         critic_loss.backward()
-        #torch.nn.utils.clip_grad_norm(self.critic_local.parameters(), 1)
         self.critic_optimizer.step()
 
         # ---------------------------- update actor ---------------------------- #
@@ -140,6 +136,18 @@ class Agent():
         """
         for target_param, local_param in zip(target_model.parameters(), local_model.parameters()):
             target_param.data.copy_(tau*local_param.data + (1.0-tau)*target_param.data)
+
+    def LoadWeights(self):
+        self.actor_target.load_state_dict(torch.load(an_filename))
+        self.critic_target.load_state_dict(torch.load(cn_filename))
+        self.actor_local.load_state_dict(torch.load(an_filename))
+        self.critic_local.load_state_dict(torch.load(cn_filename))
+
+    def SaveWeights(self):
+
+        torch.save(self.actor_local.state_dict(), an_filename)
+        torch.save(self.critic_local.state_dict(), cn_filename)
+
 
 class OUNoise:
     """Ornstein-Uhlenbeck process."""
