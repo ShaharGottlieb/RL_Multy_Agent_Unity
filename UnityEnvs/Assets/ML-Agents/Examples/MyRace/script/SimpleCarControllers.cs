@@ -15,7 +15,7 @@ public class SimpleCarControllers : MonoBehaviour
     public WheelCollider rearDriverW, rearPassengerW;
     public Transform frontDriverT, frontPassengerT;
     public Transform rearDriverT, rearPassengerT;
-    public float maxSteerAngle = 30;
+    public float maxSteerAngle = 15;
     public float motorForce = 50;
 
     private Vector3 startPos;
@@ -40,7 +40,7 @@ public class SimpleCarControllers : MonoBehaviour
     public float GetVelocity()
     {
         float v = gameObject.GetComponent<Rigidbody>().velocity.magnitude;
-        return (v > 0.1)? v : 0;
+        return (v > 0.01)? v : 0;
     }
 
     public void SetInput(Vector2 input)

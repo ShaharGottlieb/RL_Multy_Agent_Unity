@@ -77,7 +77,8 @@ class Agent():
                 acts[agent,:] = self.actor_local(state[agent,:]).cpu().data.numpy()
         self.actor_local.train()
         if add_noise:
-            acts += self.noise.sample()
+            noise = self.noise.sample()
+            acts += noise
         return np.clip(acts, -1, 1)
 
     def reset(self):
@@ -152,7 +153,7 @@ class Agent():
 class OUNoise:
     """Ornstein-Uhlenbeck process."""
 
-    def __init__(self, size, seed, mu=0.0, theta=0.15, sigma=0.15, sigma_min = 0.05, sigma_decay=.975):
+    def __init__(self, size, seed, mu=[0.0,0.3], theta=0.15, sigma=0.15, sigma_min = 0.05, sigma_decay=.99):
         """Initialize parameters and noise process."""
         self.mu = mu * np.ones(size)
         self.theta = theta

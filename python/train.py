@@ -6,7 +6,7 @@ import numpy as np
 import os
 from collections import deque
 from ddpg.ddpg_agent import Agent as DDPGAgent
-from maddpg.maddpg_agent import Agent as MADDPGAgent
+from maDDPG.maddpg_agent import Agent as MADDPGAgent
 from mlagents.envs import UnityEnvironment
 """
 ###################################
@@ -21,7 +21,8 @@ num_episodes=1000
 episode_scores = []
 scores_average_window = 100      
 solved_score = 10
-load_weights=False
+load_weights=True
+# load_weights=False
 env_config = {"num_agents": 1}
 
 """
@@ -30,6 +31,7 @@ STEP 2: Start the Unity Environment
 # Use the corresponding call depending on your operating system 
 """
 env = UnityEnvironment(file_name=os.path.join("build_race","OurProject.exe"), no_graphics=True)
+# env = UnityEnvironment(file_name=None, no_graphics=True)
 # - **Windows** (x86): "Reacher_Windows_x86/Reacher.exe"
 # - **Windows** (x86_64): "Reacher_Windows_x86_64/Reacher.exe"
 # - **Linux** (x86): "Reacher_Linux/Reacher.x86"
@@ -91,7 +93,9 @@ A DDPG agent initialized with the following parameters.
 Here we initialize an agent using the Unity environments state and action size and number of Agents
 determined above.
 """
-agent = DDPGAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
+# agent = DDPGAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
+agent = MADDPGAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
+
 
 # Load trained model weights
 if load_weights:

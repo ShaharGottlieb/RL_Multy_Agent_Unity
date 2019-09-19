@@ -26,7 +26,7 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 class Agent():
     """Interacts with and learns from the environment."""
-    
+
     def __init__(self, state_size, action_size, num_agents, random_seed):
         """Initialize an Agent object.
         
@@ -59,7 +59,7 @@ class Agent():
 
         # Replay memory
         self.memory = ReplayBuffer(action_size, BUFFER_SIZE, BATCH_SIZE, random_seed)
-    
+
     def step(self, states, actions, rewards, next_states, dones):
         """Save experience in replay memory, and use random sample from buffer to learn."""
         # Save experience / reward
@@ -154,21 +154,23 @@ class Agent():
 
     def LoadWeights(self):
         for agent in range(self.num_agents):
-            self.actors_target[agent].load_state_dict(torch.load(an_filename+"_"+str(agent)))
-            self.critics_target[agent].load_state_dict(torch.load(cn_filename+"_"+str(agent)))
-            self.actors_local[agent].load_state_dict(torch.load(an_filename+"_"+str(agent)))
-            self.critics_local[agent].load_state_dict(torch.load(cn_filename+"_"+str(agent)))
+            self.actors_target[agent].load_state_dict(torch.load(an_filename))
+            self.critics_target[agent].load_state_dict(torch.load(cn_filename))
+            self.actors_local[agent].load_state_dict(torch.load(an_filename))
+            self.critics_local[agent].load_state_dict(torch.load(cn_filename))
 
     def SaveWeights(self):
         for agent in range(self.num_agents):
-            torch.save(self.actors_local[agent].state_dict(), an_filename+"_"+str(agent))
-            torch.save(self.critics_local[agent].state_dict(), cn_filename+"_"+str(agent))
+            # torch.save(self.actors_local[agent].state_dict(), an_filename+"_"+str(agent))
+            torch.save(self.actors_local[agent].state_dict(), an_filename)
+            # torch.save(self.critics_local[agent].state_dict(), cn_filename+"_"+str(agent))
+            torch.save(self.critics_local[agent].state_dict(), cn_filename)
 
 
 class OUNoise:
     """Ornstein-Uhlenbeck process."""
 
-    def __init__(self, size, seed, mu=0.0, theta=0.15, sigma=0.15, sigma_min = 0.05, sigma_decay=.975):
+    def __init__(self, size, seed, mu=[0.0,0.3], theta=0.15, sigma=0.15, sigma_min = 0.05, sigma_decay=.975):
         """Initialize parameters and noise process."""
         self.mu = mu * np.ones(size)
         self.theta = theta

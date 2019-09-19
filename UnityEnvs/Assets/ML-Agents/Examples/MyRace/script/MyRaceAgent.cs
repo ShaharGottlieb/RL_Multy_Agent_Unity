@@ -19,14 +19,18 @@ public class MyRaceAgent : Agent
 
     private float debug_reward;
     private float nextCheckpointReward;
+    private float nextCollisionReward;
+    private float comulativeReward;
 
     private void ResetAgent()
     {
         prevCheckpoint = -1;
         currCheckpoint = -1;
         nextCheckpointReward = 0;
+        nextCollisionReward = 0;
         direction = 1;
         debug_reward = 0;
+        comulativeReward = 0;
     }
 
     public override void InitializeAgent()
@@ -43,36 +47,37 @@ public class MyRaceAgent : Agent
     {
         controller.SetInput(new Vector2(vectorAction[0], vectorAction[1]));
 
-        float velocityReward = controller.GetVelocity()/maxSpeed * direction * 0.02f;
-        float reward = velocityReward; //for velocity
+        float velocity = controller.GetVelocity();
+        float velocityReward = (velocity / maxSpeed) * direction * 0.05f;
+        float reward = (velocity <= 0.01f)? -0.01f : velocityReward; //for velocity
 
         if (nextCheckpointReward != 0)
         {
             reward += nextCheckpointReward; //for checkpoint
             nextCheckpointReward = 0;
         }
+        reward += nextCollisionReward;
+        nextCollisionReward = 0;
 
         debug_reward += reward;
+        comulativeReward += reward;
         //Debug.Log("new reward: " + debug_reward);
-
 
         if (IsDone() == false)
         {
             SetReward(reward);
         }
 
+        if (comulativeReward < -20)
+        {
+            Done();
+        }
+
     }
 
     private void OnCollisionEnter(Collision collision)
     {
-        //debug_reward -= 0.4f;
-        SetReward(-0.4f);
-    }
-
-    private void OnCollisionStay(Collision collision)
-    {
-        //debug_reward -= 0.01f;
-        SetReward(-0.01f);
+        nextCollisionReward = -0.4f;
     }
 
     public override void CollectObservations()
@@ -91,9 +96,9 @@ public class MyRaceAgent : Agent
         float[] rayAngles_short = { 0f, 180f };
         string[] detectableObjects = { "wall", "Player" };
 
-        AddVectorObs(rayPercept.Perceive(rayDistance_long, rayAngles_long, detectableObjects, 0.2f, 0));
-        AddVectorObs(rayPercept.Perceive(rayDistance_mid, rayAngles_mid, detectableObjects, 0.2f, 0));
-        AddVectorObs(rayPercept.Perceive(rayDistance_short, rayAngles_short, detectableObjects, 0.2f, 0));
+        AddVectorObs(rayPercept.Perceive(rayDistance_long, rayAngles_long, detectableObjects, 0.1f, 0));
+        AddVectorObs(rayPercept.Perceive(rayDistance_mid, rayAngles_mid, detectableObjects, 0.1f, 0));
+        AddVectorObs(rayPercept.Perceive(rayDistance_short, rayAngles_short, detectableObjects, 0.1f, 0));
 
     }
 
