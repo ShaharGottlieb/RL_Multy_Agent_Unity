@@ -61,7 +61,7 @@ public class MyRaceAgent : Agent
 
         debug_reward += reward;
         comulativeReward += reward;
-        //Debug.Log("new reward: " + debug_reward);
+        Debug.Log("new reward: " + debug_reward);
 
         if (IsDone() == false)
         {

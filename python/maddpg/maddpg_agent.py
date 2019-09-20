@@ -17,7 +17,7 @@ BATCH_SIZE = 256        # minibatch size
 GAMMA = 0.99            # discount factor
 TAU = 1e-3              # for soft update of target parameters
 LR_ACTOR = 1e-4         # learning rate of the actor 
-LR_CRITIC = 3e-4       # learning rate of the critic
+LR_CRITIC = 1.5e-4       # learning rate of the critic
 WEIGHT_DECAY = 0.0      # L2 weight decay
 
 an_filename = "maddpgActor_Model.pth"

@@ -6,12 +6,10 @@ public class CheckpointManager : MonoBehaviour
 {
     private List<GameObject> checkpoints;
     private int NCheckpoints;
-    private MyRaceAcademy academy;
     // Start is called before the first frame update
     void Start()
     {
         NCheckpoints = 0;
-        academy = GameObject.Find("Academy").GetComponent<MyRaceAcademy>();
         checkpoints = new List<GameObject>();
         foreach (Transform cp in transform)
         {
@@ -20,11 +18,6 @@ public class CheckpointManager : MonoBehaviour
                 checkpoints.Add(cp.gameObject);
                 NCheckpoints++;
             }
-        }
-        int activeCheckpoints = (int)academy.resetParameters["num_checkpoints"];
-        for (int i = activeCheckpoints; i < NCheckpoints; i++)
-        {
-            checkpoints[i].SetActive(false);
         }
     }
 

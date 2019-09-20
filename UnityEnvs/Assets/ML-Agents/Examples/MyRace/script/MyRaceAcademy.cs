@@ -7,7 +7,7 @@ public class MyRaceAcademy : Academy
 {
     public override void AcademyReset()
     {
-#if DEVELOPMENT_BUILD
+#if true
         Debug.unityLogger.logEnabled = true;
 #else
         Debug.unityLogger.logEnabled = false;
