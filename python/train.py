@@ -93,8 +93,8 @@ A DDPG agent initialized with the following parameters.
 Here we initialize an agent using the Unity environments state and action size and number of Agents
 determined above.
 """
-# agent = DDPGAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
-agent = MADDPGAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
+agent = DDPGAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
+#agent = MADDPGAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
 
 
 # Load trained model weights

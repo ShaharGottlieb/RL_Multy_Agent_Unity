@@ -9,15 +9,20 @@ public class MyRaceAgent : Agent
     public GameObject firstCheckpoint;
     public int trackLength;
     private RayPerception rayPercept;
+    private AgentManager manager;
+    private TRAIN_SETTING trainSetting;
     private int prevCheckpoint;
     private int currCheckpoint;
-    private float timePenalty;
     private float direction;
-
-    private const float maxSpeed = 6f; // for speed normalization purposes, checked in editor.
+    private float normalizedSpeed;
     private Vector3 nextCheckpointPos; //will use this location only to determine the +-1 direction
 
-    private float debug_reward;
+
+    private const float maxSpeed = 6f; // for speed normalization purposes, checked in editor.
+    private const float velocityRewardCostant = 0.05f;
+    private const float collisionPen = -0.4f;
+    private const float checkpointReward = 0.2f;
+
     private float nextCheckpointReward;
     private float nextCollisionReward;
     private float comulativeReward;
@@ -29,27 +34,51 @@ public class MyRaceAgent : Agent
         nextCheckpointReward = 0;
         nextCollisionReward = 0;
         direction = 1;
-        debug_reward = 0;
         comulativeReward = 0;
     }
 
     public override void InitializeAgent()
     {
         base.InitializeAgent();
+        manager = GetComponentInParent<AgentManager>();
+        trainSetting = manager.GetTrainSetting();
         ResetAgent();
         rayPercept = GetComponent<RayPerception>();
         nextCheckpointPos = firstCheckpoint.transform.position;
         controller = gameObject.GetComponent<SimpleCarControllers>();
+    }
 
+    private float CalculateVelocityReward()
+    {
+        float reward;
+        float velocityReward;
+
+        float velocity = controller.GetVelocity();
+        float newNormalizedSpeed = (velocity / maxSpeed) * direction;
+        float avgSpeed = manager.UpdateAverageSpeed(normalizedSpeed, newNormalizedSpeed);
+        normalizedSpeed = newNormalizedSpeed;
+
+        switch (trainSetting)
+        {
+            case TRAIN_SETTING.COOPERATIVE:
+                velocityReward = (0.7f*normalizedSpeed + 0.3f*avgSpeed) * velocityRewardCostant;
+                break;
+            case TRAIN_SETTING.COMPETATIVE:
+            case TRAIN_SETTING.SELFISH:
+            default:
+                velocityReward = normalizedSpeed * velocityRewardCostant;
+                break;
+        }
+
+        reward = (velocity <= 0.3f) ? -0.01f : velocityReward; //for velocity
+        return reward;
     }
 
     public override void AgentAction(float[] vectorAction, string textAction)
     {
         controller.SetInput(new Vector2(vectorAction[0], vectorAction[1]));
 
-        float velocity = controller.GetVelocity();
-        float velocityReward = (velocity / maxSpeed) * direction * 0.05f;
-        float reward = (velocity <= 0.01f)? -0.01f : velocityReward; //for velocity
+        float reward = CalculateVelocityReward();
 
         if (nextCheckpointReward != 0)
         {
@@ -59,9 +88,8 @@ public class MyRaceAgent : Agent
         reward += nextCollisionReward;
         nextCollisionReward = 0;
 
-        debug_reward += reward;
         comulativeReward += reward;
-        Debug.Log("new reward: " + debug_reward);
+        Debug.Log("new reward: " + comulativeReward);
 
         if (IsDone() == false)
         {
@@ -77,7 +105,7 @@ public class MyRaceAgent : Agent
 
     private void OnCollisionEnter(Collision collision)
     {
-        nextCollisionReward = -0.4f;
+        nextCollisionReward = collisionPen;
     }
 
     public override void CollectObservations()
@@ -93,7 +121,7 @@ public class MyRaceAgent : Agent
         float rayDistance_short = 5f;
         float[] rayAngles_long = {85f, 90f, 95f };
         float[] rayAngles_mid = { 60f, 75f, 105f, 120f};
-        float[] rayAngles_short = { 0f, 180f };
+        float[] rayAngles_short = { 0f, 45f, 135f, 180f };
         string[] detectableObjects = { "wall", "Player" };
 
         AddVectorObs(rayPercept.Perceive(rayDistance_long, rayAngles_long, detectableObjects, 0.1f, 0));
@@ -113,11 +141,11 @@ public class MyRaceAgent : Agent
         currCheckpoint = current;
         if (currCheckpoint == (prevCheckpoint + 1) % numberOfCheckpoints)
         {
-            nextCheckpointReward = 0.2f;
+            nextCheckpointReward = checkpointReward;
         }
         else if (currCheckpoint == (prevCheckpoint - 1) % numberOfCheckpoints)
         {
-            nextCheckpointReward = -0.2f;
+            nextCheckpointReward = -checkpointReward;
         }
         prevCheckpoint = currCheckpoint;
     }

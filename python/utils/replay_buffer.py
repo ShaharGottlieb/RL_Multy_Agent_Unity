@@ -8,9 +8,13 @@ import torch
 import numpy as np
 import random
 from collections import namedtuple, deque
+import pickle
+import copy
 
 # Determine if CPU or GPU computation should be used
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+Experience = namedtuple("Experience", field_names=["state", "action", "reward", "next_state", "done"])
 
 class ReplayBuffer:
     """Fixed-size buffer to store experience tuples."""
@@ -25,12 +29,11 @@ class ReplayBuffer:
         self.action_size = action_size
         self.memory = deque(maxlen=buffer_size)  # internal memory (deque)
         self.batch_size = batch_size
-        self.experience = namedtuple("Experience", field_names=["state", "action", "reward", "next_state", "done"])
         self.seed = random.seed(seed)
     
     def add(self, state, action, reward, next_state, done):
         """Add a new experience to memory."""
-        e = self.experience(state, action, reward, next_state, done)
+        e = Experience(state, action, reward, next_state, done)
         self.memory.append(e)
     
     def sample(self):
@@ -48,3 +51,14 @@ class ReplayBuffer:
     def __len__(self):
         """Return the current size of internal memory."""
         return len(self.memory)
+
+    def save(self, filename):
+        f = open(filename, 'wb')
+        pickle.dump([self.memory, self.action_size], f)
+        f.close()
+
+    def load(self, filename):
+        f = open(filename, "rb")
+        [memory, action_size] = pickle.load(f)
+        assert(action_size == self.action_size)
+        self.memory = copy.deepcopy(memory)

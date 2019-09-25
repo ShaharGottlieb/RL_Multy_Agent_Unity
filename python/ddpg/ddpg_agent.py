@@ -139,10 +139,10 @@ class Agent():
             target_param.data.copy_(tau*local_param.data + (1.0-tau)*target_param.data)
 
     def LoadWeights(self):
-        self.actor_target.load_state_dict(torch.load(an_filename))
-        self.critic_target.load_state_dict(torch.load(cn_filename))
-        self.actor_local.load_state_dict(torch.load(an_filename))
-        self.critic_local.load_state_dict(torch.load(cn_filename))
+        self.actor_target.load_state_dict(torch.load(an_filename, map_location=device))
+        self.critic_target.load_state_dict(torch.load(cn_filename, map_location=device))
+        self.actor_local.load_state_dict(torch.load(an_filename, map_location=device))
+        self.critic_local.load_state_dict(torch.load(cn_filename, map_location=device))
 
     def SaveWeights(self):
 
