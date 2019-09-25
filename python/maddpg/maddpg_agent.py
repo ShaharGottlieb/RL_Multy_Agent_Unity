@@ -164,11 +164,17 @@ class Agent():
             torch.save(self.actors_local[agent].state_dict(), an_filename+"_"+str(agent))
             torch.save(self.critics_local[agent].state_dict(), cn_filename+"_"+str(agent))
 
+    def SaveMem(self):
+        self.memory.save("maddpg_memory")
+
+    def LoadMem(self):
+        self.memory.load("maddpg_memory")
+
 
 class OUNoise:
     """Ornstein-Uhlenbeck process."""
 
-    def __init__(self, size, seed, mu=[0.0,0.3], theta=0.15, sigma=0.15, sigma_min = 0.05, sigma_decay=.975):
+    def __init__(self, size, seed, mu=[0.0,0.3], theta=0.15, sigma=0.15, sigma_min = 0.05, sigma_decay=.99):
         """Initialize parameters and noise process."""
         self.mu = mu * np.ones(size)
         self.theta = theta

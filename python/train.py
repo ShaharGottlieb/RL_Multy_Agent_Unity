@@ -6,7 +6,7 @@ import numpy as np
 import os
 from collections import deque
 from ddpg.ddpg_agent import Agent as DDPGAgent
-from maDDPG.maddpg_agent import Agent as MADDPGAgent
+from maddpg.maddpg_agent import Agent as MADDPGAgent
 from mlagents.envs import UnityEnvironment
 """
 ###################################
@@ -22,15 +22,19 @@ episode_scores = []
 scores_average_window = 100      
 solved_score = 10
 load_weights=True
-# load_weights=False
-env_config = {"num_agents": 1}
+load_mem=True
+env_config = {"num_agents": 4, "setting": 1}
+
+
 
 """
 ###################################
 STEP 2: Start the Unity Environment
 # Use the corresponding call depending on your operating system 
 """
-env = UnityEnvironment(file_name=os.path.join("build_race","OurProject.exe"), no_graphics=True)
+#env = UnityEnvironment(file_name=os.path.join("build_race","OurProject.exe"), no_graphics=True)
+#env = UnityEnvironment(file_name="/Users/rotemlevinson/Dropbox/Technion/Semester6/Project/Project/maDdpg_2_cars.app", no_graphics=True)
+env = UnityEnvironment(file_name="build_linux_big/my_race.x86_64", no_graphics=True)
 # env = UnityEnvironment(file_name=None, no_graphics=True)
 # - **Windows** (x86): "Reacher_Windows_x86/Reacher.exe"
 # - **Windows** (x86_64): "Reacher_Windows_x86_64/Reacher.exe"
@@ -93,13 +97,15 @@ A DDPG agent initialized with the following parameters.
 Here we initialize an agent using the Unity environments state and action size and number of Agents
 determined above.
 """
-agent = DDPGAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
-#agent = MADDPGAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
+#agent = DDPGAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
+agent = MADDPGAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
 
 
 # Load trained model weights
 if load_weights:
     agent.LoadWeights()
+if load_mem:
+    agent.LoadMem()
 
 """
 ###################################
@@ -140,8 +146,10 @@ for i_episode in range(1, num_episodes+1):
     # At each loop step take an action as a function of the current state observations
     # Based on the resultant environmental state (next_state) and reward received update the Agents Actor and Critic networks
     # If environment episode is done, exit loop...
-    # Otherwise repeat until done == true 
+    # Otherwise repeat until done == true
+    steps=0
     while True:
+        steps = steps+1
         # determine actions for the unity agents from current sate
         actions = agent.act(states)
 
@@ -173,11 +181,12 @@ for i_episode in range(1, num_episodes+1):
     average_score = np.mean(episode_scores[i_episode-min(i_episode,scores_average_window):i_episode+1])
 
     #Print current and average score
-    print('\nEpisode {}\tEpisode Score: {:.3f}\tAverage Score: {:.3f}'.format(i_episode, episode_scores[i_episode-1], average_score), end="")
+    print('\nEpisode {}\tEpisode Score: {:.3f}\tAverage Score: {:.3f}\tNumber Of Steps{}'.format(i_episode, episode_scores[i_episode-1], average_score,steps), end="")
     
     # Save trained  Actor and Critic network weights after each episode
     agent.SaveWeights()
-
+    if (i_episode%50) == 0:
+        agent.SaveMem()
     # Check to see if the task is solved (i.e,. avearge_score > solved_score over 100 episodes). 
     # If yes, save the network weights and scores and end training.
     if i_episode > 100 and average_score >= solved_score:
@@ -187,7 +196,7 @@ for i_episode in range(1, num_episodes+1):
         scores_filename = "ddpgAgent_Scores.csv"
         np.savetxt(scores_filename, episode_scores, delimiter=",")
         break
-
+agent.SaveMem()
 
 """
 ###################################
