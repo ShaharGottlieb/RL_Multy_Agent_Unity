@@ -16,14 +16,14 @@ STEP 1: Set the Test Parameters
         num_episodes (int): number of test episodes
 """
 num_episodes=5
-env_config = {"num_agents": 4, "setting": 1}
+env_config = {"num_agents": 8, "setting": 1, "num_obstacles": 8}
 
 """
 ###################################
 STEP 2: Start the Unity Environment
 # Use the corresponding call depending on your operating system 
 """
-env = UnityEnvironment(file_name=os.path.join("build_race","OurProject.exe"))
+env = UnityEnvironment(file_name=None)
 # - **Mac**: "Banana_Mac/Reacher.app"
 # - **Windows** (x86): "Reacher_Windows_x86/Reacher.exe"
 # - **Windows** (x86_64): "Reacher_Windows_x86_64/Reacher.exe"
