@@ -16,6 +16,7 @@ public class MyRaceAgent : Agent
     private float direction;
     private float normalizedSpeed;
     private Vector3 nextCheckpointPos; //will use this location only to determine the +-1 direction
+    private bool gameOver;
 
 
     private const float maxSpeed = 6f; // for speed normalization purposes, checked in editor.
@@ -29,6 +30,7 @@ public class MyRaceAgent : Agent
 
     private void ResetAgent()
     {
+        gameOver = false;
         prevCheckpoint = -1;
         currCheckpoint = -1;
         nextCheckpointReward = 0;
@@ -96,7 +98,7 @@ public class MyRaceAgent : Agent
             SetReward(reward);
         }
 
-        if (comulativeReward < -20)
+        if (comulativeReward < -20f)
         {
             Done();
         }

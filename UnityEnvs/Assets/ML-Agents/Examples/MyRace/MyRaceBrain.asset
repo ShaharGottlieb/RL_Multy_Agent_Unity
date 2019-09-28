@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: MyRaceBrain
   m_EditorClassIdentifier: 
   brainParameters:
-    vectorObservationSize: 38
+    vectorObservationSize: 46
     numStackedVectorObservations: 1
     vectorActionSize: 02000000
     cameraResolutions: []

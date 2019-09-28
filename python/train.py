@@ -21,9 +21,9 @@ num_episodes=1000
 episode_scores = []
 scores_average_window = 100      
 solved_score = 10
-load_weights=True
-load_mem=True
-env_config = {"num_agents": 4, "setting": 1}
+load_weights=False
+load_mem=False
+env_config = {"num_agents": 8, "setting": 1, "num_obstacles": 8}
 
 
 
@@ -33,8 +33,8 @@ STEP 2: Start the Unity Environment
 # Use the corresponding call depending on your operating system 
 """
 #env = UnityEnvironment(file_name=os.path.join("build_race","OurProject.exe"), no_graphics=True)
-#env = UnityEnvironment(file_name="/Users/rotemlevinson/Dropbox/Technion/Semester6/Project/Project/maDdpg_2_cars.app", no_graphics=True)
-env = UnityEnvironment(file_name="build_linux_big/my_race.x86_64", no_graphics=True)
+env = UnityEnvironment(file_name="/Users/rotemlevinson/Dropbox/Technion/Semester6/Project/Project/maDdpg_4_cars.app", no_graphics=True)
+#env = UnityEnvironment(file_name="build_linux_big/my_race.x86_64", no_graphics=True)
 # env = UnityEnvironment(file_name=None, no_graphics=True)
 # - **Windows** (x86): "Reacher_Windows_x86/Reacher.exe"
 # - **Windows** (x86_64): "Reacher_Windows_x86_64/Reacher.exe"
