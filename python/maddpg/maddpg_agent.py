@@ -63,8 +63,7 @@ class Agent():
     def step(self, states, actions, rewards, next_states, dones):
         """Save experience in replay memory, and use random sample from buffer to learn."""
         # Save experience / reward
-        self.memory.add(np.array(states).flatten(), np.array(actions).flatten(), np.array(rewards).flatten(),
-                        np.array(next_states).flatten(), np.array(dones).flatten())
+        self.memory.add(states, actions, rewards, next_states, dones)
 
         # Learn, if enough samples are available in memory
         if len(self.memory) > BATCH_SIZE:
@@ -99,23 +98,27 @@ class Agent():
             experiences (Tuple[torch.Tensor]): tuple of (s, a, r, s', done) tuples 
             gamma (float): discount factor
         """
-        states, actions, rewards, next_states, dones = experiences
+        states_batched, actions_batched, rewards, next_states_batched, dones = experiences
+        states_concated = states_batched.view([BATCH_SIZE, self.num_agents * self.state_size])
+        next_states_concated = next_states_batched.view([BATCH_SIZE, self.num_agents * self.state_size])
+        actions_concated = actions_batched.view([BATCH_SIZE, self.num_agents * self.action_size])
 
+        # states, actions, rewards, next_states, dones = experiences
         # reshape to select partial obeservation
-        next_states_batched = next_states.reshape(BATCH_SIZE, self.num_agents, self.state_size)
-        states_batched = states.reshape(BATCH_SIZE, self.num_agents, self.state_size)
-        actions_batched = actions.reshape(BATCH_SIZE, self.num_agents, self.action_size)
+        # next_states_batched = next_states.reshape(BATCH_SIZE, self.num_agents, self.state_size)
+        # states_batched = states.reshape(BATCH_SIZE, self.num_agents, self.state_size)
+        # actions_batched = actions.reshape(BATCH_SIZE, self.num_agents, self.action_size)
         for agent in range(self.num_agents):
             actions_next_batched = [self.actors_target[agent](next_states_batched[:, agent, :]) for agent in
                                         range(self.num_agents)]
             actions_next_whole = torch.cat(actions_next_batched, 1)
             # ---------------------------- update critic ---------------------------- #
             # Get predicted next-state actions and Q values from target models
-            Q_targets_next = self.critics_target[agent](next_states, actions_next_whole)
+            Q_targets_next = self.critics_target[agent](next_states_concated, actions_next_whole)
             # Compute Q targets for current states (y_i)
             Q_targets = rewards[:,agent].view(BATCH_SIZE,-1) + (GAMMA * Q_targets_next * (1 - dones[:,agent].view(BATCH_SIZE,-1)))
             # Compute critic loss
-            Q_expected = self.critics_local[agent](states, actions)
+            Q_expected = self.critics_local[agent](states_concated, actions_concated)
             critic_loss = F.mse_loss(Q_expected, Q_targets)
             # Minimize the loss
             self.critic_optimizers[agent].zero_grad()
@@ -128,7 +131,7 @@ class Agent():
             actions_pred[:,agent,:] = action_i
             actions_pred_whole = actions_pred.view(BATCH_SIZE,-1)
             # Compute actor loss
-            actor_loss = -self.critics_local[agent](states, actions_pred_whole).mean()
+            actor_loss = -self.critics_local[agent](states_concated, actions_pred_whole).mean()
             # Minimize the loss
             self.actor_optimizers[agent].zero_grad()
             actor_loss.backward()

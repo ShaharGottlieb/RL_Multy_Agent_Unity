@@ -16,7 +16,7 @@ STEP 1: Set the Test Parameters
         num_episodes (int): number of test episodes
 """
 num_episodes=5
-env_config = {"num_agents": 1, "setting": 0, "num_obstacles": 6}
+env_config = {"num_agents": 2, "setting": 0, "num_obstacles": 5}
 
 """
 ###################################
