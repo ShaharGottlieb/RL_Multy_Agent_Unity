@@ -2,11 +2,11 @@
 # Import Required Packages
 import numpy as np
 import os
-from collections import deque
 from ddpg.ddpg_agent import Agent as DDPGAgent
 from ddpg.multi_ddpg_agent import Agent as MDDPGAgent
 from maddpg.maddpg_agent import Agent as MADDPGAgent
 from mlagents.envs import UnityEnvironment
+import utils.utils as utils
 """
 ###################################
 STEP 1: Set the Training Parameters
@@ -22,7 +22,7 @@ scores_average_window = 20
 solved_score = 40
 load_weights=False
 load_mem=False
-env_config = {"num_agents": 3, "setting": 0, "num_obstacles": 8}
+env_config = {"num_agents": 1, "setting": 0, "num_obstacles": 8}
 
 
 
@@ -76,6 +76,7 @@ action_size = brain.vector_action_space_size
 
 # Set the size of state observations or state size
 state_size = brain.vector_observation_space_size
+state_size = utils.processed_state_dim(state_size)
 
 # Get number of agents in Environment
 env_info = env.reset(train_mode=True, config=env_config)[brain_name]
@@ -96,8 +97,8 @@ A DDPG agent initialized with the following parameters.
 Here we initialize an agent using the Unity environments state and action size and number of Agents
 determined above.
 """
-#agent = DDPGAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
-agent = MADDPGAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
+agent = DDPGAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
+#agent = MADDPGAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
 #agent = MDDPGAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
 
 
@@ -135,7 +136,8 @@ for i_episode in range(1, num_episodes+1):
 
     # get initial state of the unity environment 
     states = env_info.vector_observations
-    
+    states = utils.preprocess_observations(states, num_agents)
+
 	# reset the training agent for new episode
     agent.reset()
 
@@ -157,6 +159,7 @@ for i_episode in range(1, num_episodes+1):
         env_info = env.step(actions)[brain_name]        
 
         next_states = env_info.vector_observations   # get the next states for each unity agent in the environment
+        next_states = utils.preprocess_observations(next_states, num_agents)
         rewards = env_info.rewards                   # get the rewards for each unity agent in the environment
         dones = env_info.local_done                  # see if episode has finished for each unity agent in the environment
 

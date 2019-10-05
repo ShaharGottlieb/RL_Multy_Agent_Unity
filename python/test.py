@@ -1,14 +1,11 @@
 ###################################
 # Import Required Packages
-import torch
-import time
-import random
-import os
 import numpy as np
 from ddpg.ddpg_agent import Agent as DDPGAgent
 from ddpg.multi_ddpg_agent import Agent as MDDPGAgent
 from maddpg.maddpg_agent import Agent as MADDPGAgent
 from mlagents.envs import UnityEnvironment
+import utils.utils as utils
 
 """
 ###################################
@@ -24,8 +21,8 @@ env_config = {"num_agents": 5, "setting": 0, "num_obstacles": 6}
 STEP 2: Start the Unity Environment
 # Use the corresponding call depending on your operating system 
 """
-#env = UnityEnvironment(file_name=None)
-env = UnityEnvironment(file_name=os.path.join("build_race","OurProject.exe"))
+env = UnityEnvironment(file_name=None)
+#env = UnityEnvironment(file_name=os.path.join("build_race","OurProject.exe"))
 # - **Mac**: "Banana_Mac/Reacher.app"
 # - **Windows** (x86): "Reacher_Windows_x86/Reacher.exe"
 # - **Windows** (x86_64): "Reacher_Windows_x86_64/Reacher.exe"
@@ -68,6 +65,7 @@ action_size = brain.vector_action_space_size
 
 # Set the size of state observations or state size
 state_size = brain.vector_observation_space_size
+state_size = utils.processed_state_dim(state_size)
 
 # Get number of agents in Environment
 env_info = env.reset(train_mode=True, config=env_config)[brain_name]
@@ -108,6 +106,7 @@ for i_episode in range(1, num_episodes+1):
 
     # get initial state of the unity environment 
     states = env_info.vector_observations
+    states = utils.preprocess_observations(states, num_agents)
 
     # reset the training agent for new episode
     agent.reset()
@@ -124,9 +123,10 @@ for i_episode in range(1, num_episodes+1):
         actions = agent.act(states, add_noise=False)
 
         # send the actions to the unity agents in the environment and receive resultant environment information
-        env_info = env.step(actions)[brain_name]        
+        env_info = env.step(actions)[brain_name]
 
         next_states = env_info.vector_observations   # get the next states for each unity agent in the environment
+        next_states = utils.preprocess_observations(next_states, num_agents)
         rewards = env_info.rewards                   # get the rewards for each unity agent in the environment
         dones = env_info.local_done                  # see if episode has finished for each unity agent in the environment
 
