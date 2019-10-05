@@ -44,15 +44,15 @@ class Agent():
         # Actor Network (w/ Target Network)
         self.actors_local = [Actor(state_size, action_size, random_seed).to(device) for i in range(num_agents)]
         self.actors_target = [Actor(state_size, action_size, random_seed).to(device) for i in range(num_agents)]
-        self.actor_optimizers = [optim.Adam(actor.parameters(), lr=LR_ACTOR) for actor in self.actors_local]
+        self.actor_optimizers = [optim.Adam(self.actors_local[i].parameters(), lr=LR_ACTOR) for i in range(num_agents)]
 
         # Critic Network (w/ Target Network)
         self.critics_local = [Critic(num_agents*state_size, num_agents*action_size, random_seed).to(device)
                               for i in range(num_agents)]
         self.critics_target = [Critic(num_agents*state_size, num_agents*action_size, random_seed).to(device)
                               for i in range(num_agents)]
-        self.critic_optimizers = [optim.Adam(critic.parameters(), lr=LR_CRITIC, weight_decay=WEIGHT_DECAY)
-                                  for critic in self.critics_local]
+        self.critic_optimizers = [optim.Adam(self.critics_local[i].parameters(), lr=LR_CRITIC, weight_decay=WEIGHT_DECAY)
+                                  for i in range(num_agents)]
 
         # Noise process for each agent
         self.noise = OUNoise((num_agents, action_size), random_seed)
@@ -109,7 +109,7 @@ class Agent():
         # states_batched = states.reshape(BATCH_SIZE, self.num_agents, self.state_size)
         # actions_batched = actions.reshape(BATCH_SIZE, self.num_agents, self.action_size)
         for agent in range(self.num_agents):
-            actions_next_batched = [self.actors_target[agent](next_states_batched[:, agent, :]) for agent in
+            actions_next_batched = [self.actors_target[i](next_states_batched[:, i, :]) for i in
                                         range(self.num_agents)]
             actions_next_whole = torch.cat(actions_next_batched, 1)
             # ---------------------------- update critic ---------------------------- #

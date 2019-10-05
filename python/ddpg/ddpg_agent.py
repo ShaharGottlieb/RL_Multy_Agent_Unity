@@ -9,7 +9,7 @@ from utils.replay_buffer import ReplayBuffer
 import torch
 import torch.nn.functional as F
 import torch.optim as optim
-
+import os.path
 
 BUFFER_SIZE = int(1e6)  # replay buffer size
 BATCH_SIZE = 128        # minibatch size
@@ -103,7 +103,7 @@ class Agent():
         actions_next = self.actor_target(next_states)
         Q_targets_next = self.critic_target(next_states, actions_next)
         # Compute Q targets for current states (y_i)
-        Q_targets = rewards + (GAMMA * Q_targets_next * (1 - dones))
+        Q_targets = rewards.view(BATCH_SIZE, -1) + (GAMMA * Q_targets_next * (1 - dones).view(BATCH_SIZE, -1))
         # Compute critic loss
         Q_expected = self.critic_local(states, actions)
         critic_loss = F.mse_loss(Q_expected, Q_targets)
@@ -138,16 +138,31 @@ class Agent():
         for target_param, local_param in zip(target_model.parameters(), local_model.parameters()):
             target_param.data.copy_(tau*local_param.data + (1.0-tau)*target_param.data)
 
+    @staticmethod
+    def suffix_handler(filename, suffix):    #this is so we can train single agent and the load to multi-agents
+        if os.path.exists(filename+suffix):
+            return filename+suffix
+        elif os.path.exists(filename+str(0)):
+            return filename+str(0)
+        else:
+            return filename
+
     def LoadWeights(self, suffix=""):
-        self.actor_target.load_state_dict(torch.load(an_filename+suffix, map_location=device))
-        self.critic_target.load_state_dict(torch.load(cn_filename+suffix, map_location=device))
-        self.actor_local.load_state_dict(torch.load(an_filename+suffix, map_location=device))
-        self.critic_local.load_state_dict(torch.load(cn_filename+suffix, map_location=device))
+        self.actor_target.load_state_dict(torch.load(self.suffix_handler(an_filename,suffix), map_location=device))
+        self.critic_target.load_state_dict(torch.load(self.suffix_handler(cn_filename,suffix), map_location=device))
+        self.actor_local.load_state_dict(torch.load(self.suffix_handler(an_filename,suffix), map_location=device))
+        self.critic_local.load_state_dict(torch.load(self.suffix_handler(cn_filename,suffix), map_location=device))
 
     def SaveWeights(self, suffix=""):
 
         torch.save(self.actor_local.state_dict(), an_filename+suffix)
         torch.save(self.critic_local.state_dict(), cn_filename+suffix)
+
+    def SaveMem(self, suffix=""):
+        self.memory.save("ddpg_memory"+suffix)
+
+    def LoadMem(self, suffix=""):
+        self.memory.load(self.suffix_handler("ddpg_memory",suffix))
 
 
 class OUNoise:

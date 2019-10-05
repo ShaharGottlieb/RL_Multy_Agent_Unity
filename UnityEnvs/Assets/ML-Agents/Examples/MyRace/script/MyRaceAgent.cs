@@ -78,6 +78,11 @@ public class MyRaceAgent : Agent
 
     public override void AgentAction(float[] vectorAction, string textAction)
     {
+        if(gameOver == true)
+        {
+            SetReward(-1f);
+            Done();
+        }
         controller.SetInput(new Vector2(vectorAction[0], vectorAction[1]));
 
         float reward = CalculateVelocityReward();
@@ -98,7 +103,7 @@ public class MyRaceAgent : Agent
             SetReward(reward);
         }
 
-        if (comulativeReward < -20f)
+        if (comulativeReward < -10f)
         {
             Done();
         }
@@ -107,7 +112,14 @@ public class MyRaceAgent : Agent
 
     private void OnCollisionEnter(Collision collision)
     {
-        nextCollisionReward = collisionPen;
+        if (collision.transform.tag == "Player")
+        {
+            gameOver = true;
+        }
+        else
+        {
+            nextCollisionReward = collisionPen;
+        }
     }
 
     public override void CollectObservations()

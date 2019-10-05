@@ -53,7 +53,7 @@ class Actor(nn.Module):
 class Critic(nn.Module):
     """Critic (Value) Model."""
 
-    def __init__(self, state_size, action_size, seed, fcs1_units=256, fc2_units=128, fc3_units=75):
+    def __init__(self, state_size, action_size, seed, fcs1_units=1024, fc2_units=512, fc3_units=256):
         """Initialize parameters and build model.
         maddpg params:
         fc1 = 1024

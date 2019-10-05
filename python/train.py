@@ -1,11 +1,10 @@
 ###################################
 # Import Required Packages
-import torch
-import random
 import numpy as np
 import os
 from collections import deque
 from ddpg.ddpg_agent import Agent as DDPGAgent
+from ddpg.multi_ddpg_agent import Agent as MDDPGAgent
 from maddpg.maddpg_agent import Agent as MADDPGAgent
 from mlagents.envs import UnityEnvironment
 """
@@ -19,11 +18,11 @@ STEP 1: Set the Training Parameters
     """
 num_episodes=1000
 episode_scores = []
-scores_average_window = 100      
-solved_score = 10
+scores_average_window = 20
+solved_score = 40
 load_weights=False
 load_mem=False
-env_config = {"num_agents": 1, "setting": 1, "num_obstacles": 8}
+env_config = {"num_agents": 3, "setting": 0, "num_obstacles": 8}
 
 
 
@@ -99,6 +98,7 @@ determined above.
 """
 #agent = DDPGAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
 agent = MADDPGAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
+#agent = MDDPGAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
 
 
 # Load trained model weights
@@ -147,7 +147,7 @@ for i_episode in range(1, num_episodes+1):
     # Based on the resultant environmental state (next_state) and reward received update the Agents Actor and Critic networks
     # If environment episode is done, exit loop...
     # Otherwise repeat until done == true
-    steps=0
+    steps = 0
     while True:
         steps = steps+1
         # determine actions for the unity agents from current sate
@@ -189,7 +189,7 @@ for i_episode in range(1, num_episodes+1):
         agent.SaveMem()
     # Check to see if the task is solved (i.e,. avearge_score > solved_score over 100 episodes). 
     # If yes, save the network weights and scores and end training.
-    if i_episode > 100 and average_score >= solved_score:
+    if i_episode > scores_average_window*2 and average_score >= solved_score:
         print('\nEnvironment solved in {:d} episodes!\tAverage Score: {:.3f}'.format(i_episode, average_score))
 
         # Save the recorded Scores data

@@ -6,6 +6,7 @@ import random
 import os
 import numpy as np
 from ddpg.ddpg_agent import Agent as DDPGAgent
+from ddpg.multi_ddpg_agent import Agent as MDDPGAgent
 from maddpg.maddpg_agent import Agent as MADDPGAgent
 from mlagents.envs import UnityEnvironment
 
@@ -16,7 +17,7 @@ STEP 1: Set the Test Parameters
         num_episodes (int): number of test episodes
 """
 num_episodes=5
-env_config = {"num_agents": 2, "setting": 0, "num_obstacles": 5}
+env_config = {"num_agents": 5, "setting": 0, "num_obstacles": 6}
 
 """
 ###################################
@@ -89,7 +90,8 @@ determined above.
 """
 #Initialize Agent
 #agent = DDPGAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
-agent = MADDPGAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
+#agent = MADDPGAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
+agent = MDDPGAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
 
 # Load trained model weights
 agent.LoadWeights()

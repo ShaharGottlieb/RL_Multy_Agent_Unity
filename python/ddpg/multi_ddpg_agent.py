@@ -15,8 +15,8 @@ class Agent():
             states_single = states[i].reshape(1, self.state_size)
             actions_single = actions[i].reshape(1, self.action_size)
             next_states_single = next_states[i].reshape(1, self.state_size)
-            dones_single = dones[i]
-            rewards_single = rewards[i]
+            dones_single = [dones[i]]
+            rewards_single = [rewards[i]]
             self.agents[i].step(states_single, actions_single, rewards_single, next_states_single, dones_single)
 
     def act(self, state, add_noise=True):
@@ -33,4 +33,12 @@ class Agent():
     def SaveWeights(self):
         for agent in range(self.num_agents):
             self.agents[agent].SaveWeights(str(agent))
+
+    def SaveMem(self):
+        for agent in range(self.num_agents):
+            self.agents[agent].SaveMem(str(agent))
+
+    def LoadMem(self):
+        for agent in range(self.num_agents):
+            self.agents[agent].LoadMem(str(agent))
 
