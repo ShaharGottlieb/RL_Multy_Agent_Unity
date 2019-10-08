@@ -15,7 +15,8 @@ import torch.optim as optim
 BUFFER_SIZE = int(1e6)  # replay buffer size
 BATCH_SIZE = 256        # minibatch size
 GAMMA = 0.99            # discount factor
-TAU = 1e-3              # for soft update of target parameters
+TAU = 1e-1              # for soft update of target parameters
+UPDATE_EVERY = 100
 LR_ACTOR = 1e-4         # learning rate of the actor 
 LR_CRITIC = 1.5e-4       # learning rate of the critic
 WEIGHT_DECAY = 0.0      # L2 weight decay
@@ -60,6 +61,8 @@ class Agent():
         # Replay memory
         self.memory = ReplayBuffer(action_size, BUFFER_SIZE, BATCH_SIZE, random_seed)
 
+        self.step_count = 0
+
     def step(self, states, actions, rewards, next_states, dones):
         """Save experience in replay memory, and use random sample from buffer to learn."""
         # Save experience / reward
@@ -85,6 +88,7 @@ class Agent():
 
     def reset(self):
         self.noise.reset()
+        self.step_count = 0
 
     def learn(self, experiences):
         """Update policy and value parameters using given batch of experience tuples.
@@ -138,9 +142,11 @@ class Agent():
             self.actor_optimizers[agent].step()
 
         # ----------------------- update target networks ----------------------- #
-        for agent in range(self.num_agents):
-            self.soft_update(self.critics_local[agent], self.critics_target[agent], TAU)
-            self.soft_update(self.actors_local[agent], self.actors_target[agent], TAU)
+        self.step_count = self.step_count + 1
+        if (self.step_count % UPDATE_EVERY) == 0:
+            for agent in range(self.num_agents):
+                self.soft_update(self.critics_local[agent], self.critics_target[agent], TAU)
+                self.soft_update(self.actors_local[agent], self.actors_target[agent], TAU)
 
     def soft_update(self, local_model, target_model, tau):
         """Soft update model parameters.
