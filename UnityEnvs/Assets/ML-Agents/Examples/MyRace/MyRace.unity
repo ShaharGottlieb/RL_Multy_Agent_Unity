@@ -166,7 +166,7 @@ MonoBehaviour:
     - key: setting
       value: 0
     - key: num_obstacles
-      value: 4
+      value: 16
 --- !u!4 &47210446
 Transform:
   m_ObjectHideFlags: 0
@@ -575,7 +575,7 @@ PrefabInstance:
     - target: {fileID: 8149949225044848949, guid: d146170becf8d4f6ca29182b8a7c80e0,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: -2
+      value: -3.09
       objectReference: {fileID: 0}
     - target: {fileID: 8149949225044848949, guid: d146170becf8d4f6ca29182b8a7c80e0,
         type: 3}
@@ -2775,7 +2775,7 @@ PrefabInstance:
     - target: {fileID: 4279163518766838288, guid: 36adcc5633648f942b77bed4a9157ee5,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: 1.9184299
+      value: 0.02
       objectReference: {fileID: 0}
     - target: {fileID: 4279163518766838288, guid: 36adcc5633648f942b77bed4a9157ee5,
         type: 3}
@@ -2785,7 +2785,7 @@ PrefabInstance:
     - target: {fileID: 4279163518766838288, guid: 36adcc5633648f942b77bed4a9157ee5,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: 22.720884
+      value: 22.01
       objectReference: {fileID: 0}
     - target: {fileID: 4279163518766838288, guid: 36adcc5633648f942b77bed4a9157ee5,
         type: 3}

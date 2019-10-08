@@ -24,8 +24,8 @@ public class CheckpointManager : MonoBehaviour
     public void CheckpointTrigger(GameObject cp, MyRaceAgent agent)
     {
         int index = checkpoints.IndexOf(cp);
-        Vector3 nxtCheckpointPos = checkpoints[(index + 1) % NCheckpoints].transform.position;
-        agent.SetNextCheckpoint(nxtCheckpointPos);
+        GameObject nxtCheckpoint = checkpoints[(index + 1) % NCheckpoints];
+        agent.SetNextCheckpoint(nxtCheckpoint.transform.position, nxtCheckpoint.name);
         agent.SetNextReward(index, checkpoints.Count);
     }
 }

@@ -6,6 +6,7 @@ from ddpg.multi_ddpg_agent import Agent as MDDPGAgent
 from maddpg.maddpg_agent import Agent as MADDPGAgent
 from mlagents.envs import UnityEnvironment
 import utils.utils as utils
+import os
 
 """
 ###################################
@@ -14,15 +15,15 @@ STEP 1: Set the Test Parameters
         num_episodes (int): number of test episodes
 """
 num_episodes=5
-env_config = {"num_agents": 5, "setting": 0, "num_obstacles": 6}
+env_config = {"num_agents": 1, "setting": 0, "num_obstacles": 6}
 
 """
 ###################################
 STEP 2: Start the Unity Environment
 # Use the corresponding call depending on your operating system 
 """
-env = UnityEnvironment(file_name=None)
-#env = UnityEnvironment(file_name=os.path.join("build_race","OurProject.exe"))
+#env = UnityEnvironment(file_name=None)
+env = UnityEnvironment(file_name=os.path.join("build_race","OurProject.exe"))
 # - **Mac**: "Banana_Mac/Reacher.app"
 # - **Windows** (x86): "Reacher_Windows_x86/Reacher.exe"
 # - **Windows** (x86_64): "Reacher_Windows_x86_64/Reacher.exe"
@@ -87,9 +88,9 @@ Here we initialize an agent using the Unity environments state and action size a
 determined above.
 """
 #Initialize Agent
-#agent = DDPGAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
+agent = DDPGAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
 #agent = MADDPGAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
-agent = MDDPGAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
+#agent = MDDPGAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
 
 # Load trained model weights
 agent.LoadWeights()

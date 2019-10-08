@@ -16,6 +16,7 @@ public class MyRaceAgent : Agent
     private float direction;
     private float normalizedSpeed;
     private Vector3 nextCheckpointPos; //will use this location only to determine the +-1 direction
+    private string nextCheckpointName; //this is to identify the next checkpoint in order to determine direction.
     private bool gameOver;
 
 
@@ -47,6 +48,7 @@ public class MyRaceAgent : Agent
         ResetAgent();
         rayPercept = GetComponent<RayPerception>();
         nextCheckpointPos = firstCheckpoint.transform.position;
+        nextCheckpointName = firstCheckpoint.name;
         controller = gameObject.GetComponent<SimpleCarControllers>();
     }
 
@@ -142,6 +144,10 @@ public class MyRaceAgent : Agent
         AddVectorObs(rayPercept.Perceive(rayDistance_mid, rayAngles_mid, detectableObjects, 0.1f, 0.1f));
         AddVectorObs(rayPercept.Perceive(rayDistance_short, rayAngles_short, detectableObjects, 0.1f, 0.1f));
 
+        AddVectorObs(rayPercept.PerceiveSingleObject(rayDistance_long, rayAngles_long, nextCheckpointName, 0.1f, 0.1f));
+        AddVectorObs(rayPercept.PerceiveSingleObject(rayDistance_mid, rayAngles_mid, nextCheckpointName, 0.1f, 0.1f));
+        AddVectorObs(rayPercept.PerceiveSingleObject(rayDistance_short, rayAngles_short, nextCheckpointName, 0.1f, 0.1f));
+
     }
 
     public override void AgentReset()
@@ -165,8 +171,9 @@ public class MyRaceAgent : Agent
     }
 
 
-    public void SetNextCheckpoint(Vector3 checkpointPos)
+    public void SetNextCheckpoint(Vector3 checkpointPos, string checkpointName)
     {
         nextCheckpointPos = checkpointPos;
+        nextCheckpointName = checkpointName;
     }
 }

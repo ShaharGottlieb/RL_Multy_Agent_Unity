@@ -68,6 +68,49 @@ namespace MLAgents
         }
 
         /// <summary>
+        /// Creates perception vector to be used as part of an observation of an agent.
+        /// </summary>
+        /// <returns>The partial vector observation corresponding to the set of rays</returns>
+        /// <param name="rayDistance">Radius of rays</param>
+        /// <param name="rayAngles">Anlges of rays (starting from (1,0) on unit circle).</param>
+        /// <param name="objectName">name of the object to be found</param>
+        /// <param name="startOffset">Starting heigh offset of ray from center of agent.</param>
+        /// <param name="endOffset">Ending height offset of ray from center of agent.</param>
+        public List<float> PerceiveSingleObject(float rayDistance,
+            float[] rayAngles, string objectName,
+            float startOffset, float endOffset)
+        {
+            perceptionBuffer.Clear();
+            // For each ray sublist stores categorial information on detected object
+            // along with object distance.
+            foreach (float angle in rayAngles)
+            {
+                endPosition = transform.TransformDirection(
+                    PolarToCartesian(rayDistance, angle));
+                endPosition.y = endOffset;
+                if (Application.isEditor)
+                {
+                    Debug.DrawRay(transform.position + new Vector3(0f, startOffset, 0f),
+                        endPosition, Color.black, 0.01f, true);
+                }
+
+                float dist = 0f;
+                if (Physics.SphereCast(transform.position +
+                                       new Vector3(0f, startOffset, 0f), 0.5f,
+                    endPosition, out hit, rayDistance))
+                {
+                    if (hit.collider.gameObject.name == objectName)
+                    {
+                        dist = hit.distance / rayDistance;
+                    }
+                }
+                perceptionBuffer.Add(dist);
+            }
+            return perceptionBuffer;
+        }
+
+
+        /// <summary>
         /// Converts polar coordinate to cartesian coordinate.
         /// </summary>
         public static Vector3 PolarToCartesian(float radius, float angle)
