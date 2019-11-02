@@ -114,7 +114,7 @@ public class MyRaceAgent : Agent
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.transform.tag == "Player")
+        if (manager.GetIsInference()==false && collision.transform.tag == "Player")
         {
             gameOver = true;
         }
@@ -144,9 +144,12 @@ public class MyRaceAgent : Agent
         AddVectorObs(rayPercept.Perceive(rayDistance_mid, rayAngles_mid, detectableObjects, 0.1f, 0.1f));
         AddVectorObs(rayPercept.Perceive(rayDistance_short, rayAngles_short, detectableObjects, 0.1f, 0.1f));
 
-        AddVectorObs(rayPercept.PerceiveSingleObject(rayDistance_long, rayAngles_long, nextCheckpointName, 0.1f, 0.1f));
-        AddVectorObs(rayPercept.PerceiveSingleObject(rayDistance_mid, rayAngles_mid, nextCheckpointName, 0.1f, 0.1f));
-        AddVectorObs(rayPercept.PerceiveSingleObject(rayDistance_short, rayAngles_short, nextCheckpointName, 0.1f, 0.1f));
+        //AddVectorObs(rayPercept.PerceiveSingleObject(rayDistance_long, rayAngles_long, nextCheckpointName, 0.1f, 0.1f));
+        //AddVectorObs(rayPercept.PerceiveSingleObject(rayDistance_mid, rayAngles_mid, nextCheckpointName, 0.1f, 0.1f));
+        //AddVectorObs(rayPercept.PerceiveSingleObject(rayDistance_short, rayAngles_short, nextCheckpointName, 0.1f, 0.1f));
+
+        float[] pos = { transform.position.x, transform.position.z, transform.rotation.y };
+        AddVectorObs(pos);
 
     }
 
