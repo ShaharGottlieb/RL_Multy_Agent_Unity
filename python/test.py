@@ -1,6 +1,7 @@
 ###################################
 # Import Required Packages
 import numpy as np
+from heuristic.heuristic_agent import Agent as HeuristicAgent
 from ddpg.ddpg_agent import Agent as DDPGAgent
 from ddpg.multi_ddpg_agent import Agent as MDDPGAgent
 from maddpg.maddpg_agent import Agent as MADDPGAgent
@@ -15,7 +16,7 @@ STEP 1: Set the Test Parameters
         num_episodes (int): number of test episodes
 """
 num_episodes=5
-env_config = {"num_agents": 1, "setting": 0, "num_obstacles": 6}
+env_config = {"num_agents": 5, "setting": 0, "num_obstacles": 1}
 
 """
 ###################################
@@ -88,9 +89,10 @@ Here we initialize an agent using the Unity environments state and action size a
 determined above.
 """
 #Initialize Agent
-agent = DDPGAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
-#agent = MADDPGAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
+#agent = DDPGAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
+agent = MADDPGAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
 #agent = MDDPGAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
+#agent = HeuristicAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
 
 # Load trained model weights
 agent.LoadWeights()

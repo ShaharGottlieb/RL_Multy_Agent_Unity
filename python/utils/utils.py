@@ -5,6 +5,7 @@ ANGLE_VALUES = DETECTABLE_OBJECTS + 2
 N_ANGLES = 11
 
 def preprocess_observations(states, num_agents):
+    return states
     """Process a agent observation.
     Params
     ======
@@ -29,12 +30,21 @@ def preprocess_observations(states, num_agents):
             new_player_dist_index = new_wall_hit_index + 1
 
             processed_states[i][new_wall_hit_index] = states[i][wall_hit_index] * states[i][distance_index]
+            if(processed_states[i][new_wall_hit_index] > 0):
+                processed_states[i][new_wall_hit_index] = 1 - processed_states[i][new_wall_hit_index]
+
             processed_states[i][new_player_dist_index] = states[i][player_hit_index] * states[i][distance_index]
+            if(processed_states[i][new_player_dist_index] > 0):
+                processed_states[i][new_player_dist_index] = 1 - processed_states[i][new_player_dist_index]
 
         processed_states[i, -N_ANGLES:] = states[i, -N_ANGLES:]
+        for j in range(len(processed_states[i, -N_ANGLES:])):
+            if processed_states[i, -N_ANGLES + j] > 0:
+                processed_states[i, -N_ANGLES + j] = 1 - processed_states[i, -N_ANGLES + j]
 
     return processed_states
 
 def processed_state_dim(state_size):
+    return state_size
     assert ((state_size-2-N_ANGLES) % ANGLE_VALUES) == 0
     return 1 + DETECTABLE_OBJECTS*N_ANGLES + N_ANGLES

@@ -6,7 +6,7 @@ from ddpg.ddpg_agent import Agent as DDPGAgent
 from ddpg.multi_ddpg_agent import Agent as MDDPGAgent
 from maddpg.maddpg_agent import Agent as MADDPGAgent
 from mlagents.envs import UnityEnvironment
-import utils.utils as utils
+import utils.utils
 """
 ###################################
 STEP 1: Set the Training Parameters
@@ -16,13 +16,13 @@ STEP 1: Set the Training Parameters
         scores_average_window (int): the window size employed for calculating the average score (e.g. 100)
         solved_score (float): the average score required for the environment to be considered solved
     """
-num_episodes=1000
+num_episodes=50000
 episode_scores = []
-scores_average_window = 20
-solved_score = 40
-load_weights=False
+scores_average_window = 100
+solved_score = 35
+load_weights=True
 load_mem=False
-env_config = {"num_agents": 1, "setting": 0, "num_obstacles": 8}
+env_config = {"num_agents": 5, "setting": 0, "num_obstacles": 4, "track_size": 1}
 
 
 
@@ -31,9 +31,9 @@ env_config = {"num_agents": 1, "setting": 0, "num_obstacles": 8}
 STEP 2: Start the Unity Environment
 # Use the corresponding call depending on your operating system 
 """
-env = UnityEnvironment(file_name=os.path.join("build_race","OurProject.exe"), no_graphics=True)
+#env = UnityEnvironment(file_name=os.path.join("build_race","OurProject.exe"), no_graphics=True)
 #env = UnityEnvironment(file_name="/Users/rotemlevinson/Dropbox/Technion/Semester6/Project/Project/maDdpg_4_cars.app", no_graphics=True)
-#env = UnityEnvironment(file_name="build_linux_big/my_race.x86_64", no_graphics=True)
+env = UnityEnvironment(file_name="build_linux_big/my_race.x86_64", no_graphics=True)
 # env = UnityEnvironment(file_name=None, no_graphics=True)
 # - **Windows** (x86): "Reacher_Windows_x86/Reacher.exe"
 # - **Windows** (x86_64): "Reacher_Windows_x86_64/Reacher.exe"
@@ -97,8 +97,8 @@ A DDPG agent initialized with the following parameters.
 Here we initialize an agent using the Unity environments state and action size and number of Agents
 determined above.
 """
-agent = DDPGAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
-#agent = MADDPGAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
+#agent = DDPGAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
+agent = MADDPGAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
 #agent = MDDPGAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
 
 
@@ -127,7 +127,7 @@ The agent training process involves the following:
 Below we also exit the training process early if the environment is solved. 
 That is, if the average score for the previous 100 episodes is greater than solved_score.
 """
-
+best_score = -20
 # loop from num_episodes
 for i_episode in range(1, num_episodes+1):
 
@@ -184,11 +184,14 @@ for i_episode in range(1, num_episodes+1):
     average_score = np.mean(episode_scores[i_episode-min(i_episode,scores_average_window):i_episode+1])
 
     #Print current and average score
-    print('\nEpisode {}\tEpisode Score: {:.3f}\tAverage Score: {:.3f}\tNumber Of Steps{}'.format(i_episode, episode_scores[i_episode-1], average_score,steps), end="")
+    print('\nEpisode {}\tEpisode Score: {:.3f}\tAverage Score: {:.3f}\tNumber Of Steps{}\tError: {}'.format(i_episode, episode_scores[i_episode-1], average_score,steps,agent.get_mse_error()), end="")
     
     # Save trained  Actor and Critic network weights after each episode
     agent.SaveWeights()
-    if (i_episode%50) == 0:
+    if average_score > best_score:
+        agent.SaveWeightsBest()
+        best_score = average_score
+    if (i_episode%100) == 0:
         agent.SaveMem()
     # Check to see if the task is solved (i.e,. avearge_score > solved_score over 100 episodes). 
     # If yes, save the network weights and scores and end training.

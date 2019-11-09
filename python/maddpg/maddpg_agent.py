@@ -5,7 +5,6 @@ from collections import namedtuple, deque
 
 from maddpg.maddpg_model import Actor, Critic
 from utils.replay_buffer import ReplayBuffer
-from copy import deepcopy
 
 import torch
 import torch.nn.functional as F
@@ -15,11 +14,13 @@ import torch.optim as optim
 BUFFER_SIZE = int(1e6)  # replay buffer size
 BATCH_SIZE = 256        # minibatch size
 GAMMA = 0.99            # discount factor
-TAU = 1e-1              # for soft update of target parameters
+TAU = 1e-2              # for soft update of target parameters
 UPDATE_EVERY = 100
-LR_ACTOR = 1e-4         # learning rate of the actor 
-LR_CRITIC = 1.5e-4       # learning rate of the critic
-WEIGHT_DECAY = 0.0      # L2 weight decay
+LR_ACTOR = 1e-3  		# learning rate of the actor
+LR_CRITIC = 1e-3  		# learning rate of the critic
+WEIGHT_DECAY = 0.0  	# L2 weight decay
+NUM_UPDATES = 50
+PRE_TRAIN = False
 
 an_filename = "maddpgActor_Model.pth"
 cn_filename = "maddpgCritic_Model.pth"
@@ -42,6 +43,8 @@ class Agent():
         self.num_agents = num_agents
         self.seed = random.seed(random_seed)
 
+        self.debug_error = 0
+
         # Actor Network (w/ Target Network)
         self.actors_local = [Actor(state_size, action_size, random_seed).to(device) for i in range(num_agents)]
         self.actors_target = [Actor(state_size, action_size, random_seed).to(device) for i in range(num_agents)]
@@ -62,6 +65,7 @@ class Agent():
         self.memory = ReplayBuffer(action_size, BUFFER_SIZE, BATCH_SIZE, random_seed)
 
         self.step_count = 0
+        self.episode_count = 0
 
     def step(self, states, actions, rewards, next_states, dones):
         """Save experience in replay memory, and use random sample from buffer to learn."""
@@ -69,9 +73,22 @@ class Agent():
         self.memory.add(states, actions, rewards, next_states, dones)
 
         # Learn, if enough samples are available in memory
-        if len(self.memory) > BATCH_SIZE:
-            experiences = self.memory.sample()
-            self.learn(experiences)
+        self.step_count += 1
+        if (self.step_count % UPDATE_EVERY) == 0:
+            for i in range(NUM_UPDATES):
+                if len(self.memory) > 10000:
+                    experiences = self.memory.sample()
+                    self.learn(experiences)
+            self.update_target_networks()
+
+    def debug_actions(self, states, agent):
+        for i in range(self.num_agents):
+            if i != agent:
+                if states.ndimension() == 3:
+                    states[:, i, :] = 0
+                else:
+                    states[:, i] = 0
+        return states
 
     def act(self, state, add_noise=True):
         """Returns actions for given state as per current policy."""
@@ -89,6 +106,10 @@ class Agent():
     def reset(self):
         self.noise.reset()
         self.step_count = 0
+        self.episode_count += 1
+        self.debug_error = []
+        if (self.episode_count % 1000) == 0:
+            self.noise.reset_sigma()
 
     def learn(self, experiences):
         """Update policy and value parameters using given batch of experience tuples.
@@ -99,22 +120,37 @@ class Agent():
 
         Params
         ======
-            experiences (Tuple[torch.Tensor]): tuple of (s, a, r, s', done) tuples 
+            experiences (Tuple[torch.Tensor]): tuple of (s, a, r, s', done) tuples
             gamma (float): discount factor
         """
-        states_batched, actions_batched, rewards, next_states_batched, dones = experiences
-        states_concated = states_batched.view([BATCH_SIZE, self.num_agents * self.state_size])
-        next_states_concated = next_states_batched.view([BATCH_SIZE, self.num_agents * self.state_size])
-        actions_concated = actions_batched.view([BATCH_SIZE, self.num_agents * self.action_size])
+        # states_batched, actions_batched, rewards, next_states_batched, dones = experiences
+        # states_concated = states_batched.view([BATCH_SIZE, self.num_agents * self.state_size])
+        # next_states_concated = next_states_batched.view([BATCH_SIZE, self.num_agents * self.state_size])
+        # actions_concated = actions_batched.view([BATCH_SIZE, self.num_agents * self.action_size])
 
-        # states, actions, rewards, next_states, dones = experiences
-        # reshape to select partial obeservation
-        # next_states_batched = next_states.reshape(BATCH_SIZE, self.num_agents, self.state_size)
-        # states_batched = states.reshape(BATCH_SIZE, self.num_agents, self.state_size)
-        # actions_batched = actions.reshape(BATCH_SIZE, self.num_agents, self.action_size)
         for agent in range(self.num_agents):
-            actions_next_batched = [self.actors_target[i](next_states_batched[:, i, :]) for i in
-                                        range(self.num_agents)]
+            exp = copy.deepcopy(experiences)
+            states_batched, actions_batched, rewards, next_states_batched, dones = exp
+            if PRE_TRAIN:
+                actions_batched = self.debug_actions(actions_batched, agent)
+                states_batched = self.debug_actions(states_batched, agent)
+                next_states_batched = self.debug_actions(next_states_batched, agent)
+                rewards = self.debug_actions(rewards, agent)
+                dones = self.debug_actions(dones, agent)
+            states_concated = states_batched.view([BATCH_SIZE, self.num_agents * self.state_size])
+            next_states_concated = next_states_batched.view([BATCH_SIZE, self.num_agents * self.state_size])
+            actions_concated = actions_batched.view([BATCH_SIZE, self.num_agents * self.action_size])
+
+            actions_next_batched = []
+            for i in range(self.num_agents):
+                if PRE_TRAIN:
+                    if i == agent:
+                        actions_next_batched.append(self.actors_target[i](next_states_batched[:, i, :]))
+                    else:
+                        actions_next_batched.append(torch.zeros([BATCH_SIZE, self.action_size]).to(device))
+                else:
+                    actions_next_batched.append(self.actors_target[i](next_states_batched[:, i, :]))
+
             actions_next_whole = torch.cat(actions_next_batched, 1)
             # ---------------------------- update critic ---------------------------- #
             # Get predicted next-state actions and Q values from target models
@@ -127,6 +163,8 @@ class Agent():
             # Minimize the loss
             self.critic_optimizers[agent].zero_grad()
             critic_loss.backward()
+            self.debug_error.append(critic_loss.detach().cpu().numpy())
+            #torch.nn.utils.clip_grad_norm_(self.critics_local[agent].parameters(), 1)
             self.critic_optimizers[agent].step()
 
             # ---------------------------- update actor ---------------------------- #
@@ -141,12 +179,14 @@ class Agent():
             actor_loss.backward()
             self.actor_optimizers[agent].step()
 
+    def update_target_networks(self):
         # ----------------------- update target networks ----------------------- #
-        self.step_count = self.step_count + 1
-        if (self.step_count % UPDATE_EVERY) == 0:
-            for agent in range(self.num_agents):
-                self.soft_update(self.critics_local[agent], self.critics_target[agent], TAU)
-                self.soft_update(self.actors_local[agent], self.actors_target[agent], TAU)
+        for agent in range(self.num_agents):
+            self.soft_update(self.critics_local[agent], self.critics_target[agent], TAU)
+            self.soft_update(self.actors_local[agent], self.actors_target[agent], TAU)
+
+    def get_mse_error(self):
+        return np.mean(self.debug_error)
 
     def soft_update(self, local_model, target_model, tau):
         """Soft update model parameters.
@@ -156,7 +196,7 @@ class Agent():
         ======
             local_model: PyTorch model (weights will be copied from)
             target_model: PyTorch model (weights will be copied to)
-            tau (float): interpolation parameter 
+            tau (float): interpolation parameter
         """
         for target_param, local_param in zip(target_model.parameters(), local_model.parameters()):
             target_param.data.copy_(tau*local_param.data + (1.0-tau)*target_param.data)
@@ -172,6 +212,11 @@ class Agent():
         for agent in range(self.num_agents):
             torch.save(self.actors_local[agent].state_dict(), an_filename+"_"+str(agent))
             torch.save(self.critics_local[agent].state_dict(), cn_filename+"_"+str(agent))
+
+    def SaveWeightsBest(self):
+        for agent in range(self.num_agents):
+            torch.save(self.actors_local[agent].state_dict(), an_filename + "_" + str(agent) + "_best")
+            torch.save(self.critics_local[agent].state_dict(), cn_filename + "_" + str(agent) + "_best")
 
     def SaveMem(self):
         self.memory.save("maddpg_memory")
@@ -199,6 +244,9 @@ class OUNoise:
         self.state = copy.copy(self.mu)
         """Resduce  sigma from initial value to min"""
         self.sigma = max(self.sigma_min, self.sigma*self.sigma_decay)
+
+    def reset_sigma(self):
+        self.sigma = 0.15
 
     def sample(self):
         """Update internal state and return it as a noise sample."""
