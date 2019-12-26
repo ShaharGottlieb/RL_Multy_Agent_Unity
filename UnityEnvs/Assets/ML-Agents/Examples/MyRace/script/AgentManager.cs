@@ -11,6 +11,7 @@ public class AgentManager : MonoBehaviour
                                         // 2 - competative
     private float averageSpeed;
     private bool isInference;
+    private int numCheckpoints;
     // Start is called before the first frame update
     public void SetAgents(int numberOfAgents, TRAIN_SETTING setting, bool isInfer)
     {
@@ -38,6 +39,15 @@ public class AgentManager : MonoBehaviour
         return isInference;
     }
 
+    public int GetNumberOfCheckpoints()
+    {
+        if (numCheckpoints == -1)
+        {
+            numCheckpoints = GameObject.Find("Checkpoints").transform.childCount;
+        }
+        return numCheckpoints;
+    }
+
     public TRAIN_SETTING GetTrainSetting()
     {
         return maSetting;
@@ -51,6 +61,7 @@ public class AgentManager : MonoBehaviour
 
     void Start()
     {
+        numCheckpoints = -1;
         averageSpeed = 0;
     }
     // Update is called once per frame

@@ -25,7 +25,6 @@ public class CheckpointManager : MonoBehaviour
     {
         int index = checkpoints.IndexOf(cp);
         Vector3 nxtCheckpointPos = checkpoints[(index + 1) % NCheckpoints].transform.position;
-        agent.SetNextCheckpoint(nxtCheckpointPos);
-        agent.SetNextReward(index, checkpoints.Count);
+        agent.CheckpointTrigger(nxtCheckpointPos, index);
     }
 }

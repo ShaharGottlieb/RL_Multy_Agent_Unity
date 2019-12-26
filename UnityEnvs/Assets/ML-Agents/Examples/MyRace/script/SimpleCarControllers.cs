@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/**
+ * This is a very simple car controller. it translates the continous actions into car movements 
+**/
 public class SimpleCarControllers : MonoBehaviour
 {
 
