@@ -2,6 +2,7 @@ import numpy as np
 import random
 import copy
 from collections import namedtuple, deque
+from agent import AgentABC
 
 from ddpg.ddpg_model import Actor, Critic
 from utils.replay_buffer import ReplayBuffer
@@ -23,7 +24,8 @@ an_filename = "ddpgActor_Model.pth"
 cn_filename = "ddpgCritic_Model.pth"
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-class Agent():
+
+class Agent(AgentABC):
     """Interacts with and learns from the environment."""
     
     def __init__(self, state_size, action_size, num_agents, random_seed):
@@ -35,6 +37,7 @@ class Agent():
             action_size (int): dimension of each action
             random_seed (int): random seed
         """
+        super().__init__(state_size, action_size, num_agents, random_seed)
         self.state_size = state_size
         self.action_size = action_size
         self.num_agents = num_agents
@@ -74,7 +77,7 @@ class Agent():
         self.actor_local.eval()
         with torch.no_grad():
             for agent in range(self.num_agents):
-                acts[agent,:] = self.actor_local(state[agent,:]).cpu().data.numpy()
+                acts[agent, :] = self.actor_local(state[agent, :]).cpu().data.numpy()
         self.actor_local.train()
         if add_noise:
             noise = self.noise.sample()
@@ -125,7 +128,8 @@ class Agent():
         self.soft_update(self.critic_local, self.critic_target, TAU)
         self.soft_update(self.actor_local, self.actor_target, TAU)                     
 
-    def soft_update(self, local_model, target_model, tau):
+    @staticmethod
+    def soft_update(local_model, target_model, tau):
         """Soft update model parameters.
         θ_target = τ*θ_local + (1 - τ)*θ_target
 
@@ -147,28 +151,31 @@ class Agent():
         else:
             return filename
 
-    def LoadWeights(self, suffix=""):
-        self.actor_target.load_state_dict(torch.load(self.suffix_handler(an_filename,suffix), map_location=device))
-        self.critic_target.load_state_dict(torch.load(self.suffix_handler(cn_filename,suffix), map_location=device))
-        self.actor_local.load_state_dict(torch.load(self.suffix_handler(an_filename,suffix), map_location=device))
-        self.critic_local.load_state_dict(torch.load(self.suffix_handler(cn_filename,suffix), map_location=device))
+    def load_weights(self, directory_path):
+        super().load_weights(directory_path)
+        self.actor_target.load_state_dict(torch.load(self.suffix_handler(an_filename), map_location=device))
+        self.critic_target.load_state_dict(torch.load(self.suffix_handler(cn_filename), map_location=device))
+        self.actor_local.load_state_dict(torch.load(self.suffix_handler(an_filename), map_location=device))
+        self.critic_local.load_state_dict(torch.load(self.suffix_handler(cn_filename), map_location=device))
 
-    def SaveWeights(self, suffix=""):
+    def save_weights(self, directory_path):
+        super().save_weights(directory_path)
+        torch.save(self.actor_local.state_dict(), an_filename)
+        torch.save(self.critic_local.state_dict(), cn_filename)
 
-        torch.save(self.actor_local.state_dict(), an_filename+suffix)
-        torch.save(self.critic_local.state_dict(), cn_filename+suffix)
+    def save_mem(self, directory_path):
+        super.save_mem(directory_path)
+        self.memory.save(os.path.join(directory_path, "ddpg_memory"))
 
-    def SaveMem(self, suffix=""):
-        self.memory.save("ddpg_memory"+suffix)
-
-    def LoadMem(self, suffix=""):
-        self.memory.load(self.suffix_handler("ddpg_memory",suffix))
+    def load_mem(self, directory_path):
+        super.load_mem(directory_path)
+        self.memory.load(os.path.join(directory_path, "ddpg_memory"))
 
 
 class OUNoise:
     """Ornstein-Uhlenbeck process."""
 
-    def __init__(self, size, seed, mu=[0.0,0.3], theta=0.15, sigma=0.15, sigma_min = 0.05, sigma_decay=.99):
+    def __init__(self, size, seed, mu=[0.0, 0.3], theta=0.15, sigma=0.15, sigma_min = 0.05, sigma_decay=.99):
         """Initialize parameters and noise process."""
         self.mu = mu * np.ones(size)
         self.theta = theta
