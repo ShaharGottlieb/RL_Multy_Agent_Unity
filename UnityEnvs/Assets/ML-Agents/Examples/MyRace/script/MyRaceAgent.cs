@@ -112,7 +112,7 @@ public class MyRaceAgent : Agent
 
     private void OnCollisionEnter(Collision collision)
     {
-        if (collision.transform.tag == "Player")
+        if (manager.GetIsInference()==false && collision.transform.tag == "Player")
         {
             gameOver = true;
         }

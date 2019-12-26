@@ -23,7 +23,7 @@ public class MyRaceAcademy : Academy
         int activeAgents    = (int)resetParameters["num_agents"];
         int activeObstacles = (int)resetParameters["num_obstacles"];
         TRAIN_SETTING maSetting = (TRAIN_SETTING)resetParameters["setting"];
-        GameObject.Find("AgentManager").GetComponent<AgentManager>().SetAgents(activeAgents, maSetting);
+        GameObject.Find("AgentManager").GetComponent<AgentManager>().SetAgents(activeAgents, maSetting, this.GetIsInference());
         GameObject.Find("ObstaclesManager").GetComponent<ObstaclesManager>().SetObstacles(activeObstacles);
     }
 

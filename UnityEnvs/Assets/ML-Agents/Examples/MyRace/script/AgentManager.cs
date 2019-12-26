@@ -10,9 +10,11 @@ public class AgentManager : MonoBehaviour
                                         // 1 - cooperative
                                         // 2 - competative
     private float averageSpeed;
+    private bool isInference;
     // Start is called before the first frame update
-    public void SetAgents(int numberOfAgents, TRAIN_SETTING setting)
+    public void SetAgents(int numberOfAgents, TRAIN_SETTING setting, bool isInfer)
     {
+        isInference = isInfer;
         maSetting = setting;
         NAgents = 0;
         agents = new List<MyRaceAgent>();
@@ -29,6 +31,11 @@ public class AgentManager : MonoBehaviour
         {
             agents[i].gameObject.SetActive(false);
         }
+    }
+
+    public bool GetIsInference()
+    {
+        return isInference;
     }
 
     public TRAIN_SETTING GetTrainSetting()
