@@ -1,8 +1,10 @@
+import os
+
 import numpy as np
 import random
 import copy
 from collections import namedtuple, deque
-
+from agent import AgentABC
 from maddpg.maddpg_model import Actor, Critic
 from utils.replay_buffer import ReplayBuffer
 from copy import deepcopy
@@ -24,7 +26,8 @@ an_filename = "maddpgActor_Model.pth"
 cn_filename = "maddpgCritic_Model.pth"
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-class Agent():
+
+class Agent(AgentABC):
     """Interacts with and learns from the environment."""
 
     def __init__(self, state_size, action_size, num_agents, random_seed):
@@ -36,6 +39,7 @@ class Agent():
             action_size (int): dimension of each action
             random_seed (int): random seed
         """
+        super().__init__(state_size, action_size, num_agents, random_seed)
         self.state_size = state_size
         self.action_size = action_size
         self.num_agents = num_agents
@@ -155,12 +159,14 @@ class Agent():
         for target_param, local_param in zip(target_model.parameters(), local_model.parameters()):
             target_param.data.copy_(tau*local_param.data + (1.0-tau)*target_param.data)
 
-    def LoadWeights(self):
+    def load_weights(self, directory_path):
+        actor_weights = os.path.join(directory_path, an_filename)
+        critic_weights = os.path.join(directory_path, cn_filename)
         for agent in range(self.num_agents):
-            self.actors_target[agent].load_state_dict(torch.load(an_filename+"_"+str(agent), map_location=device))
-            self.critics_target[agent].load_state_dict(torch.load(cn_filename+"_"+str(agent), map_location=device))
-            self.actors_local[agent].load_state_dict(torch.load(an_filename+"_"+str(agent), map_location=device))
-            self.critics_local[agent].load_state_dict(torch.load(cn_filename+"_"+str(agent), map_location=device))
+            self.actors_target[agent].load_state_dict(torch.load(actor_weights+"_"+str(agent), map_location=device))
+            self.critics_target[agent].load_state_dict(torch.load(critic_weights+"_"+str(agent), map_location=device))
+            self.actors_local[agent].load_state_dict(torch.load(actor_weights+"_"+str(agent), map_location=device))
+            self.critics_local[agent].load_state_dict(torch.load(critic_weights+"_"+str(agent), map_location=device))
 
     def SaveWeights(self):
         for agent in range(self.num_agents):
@@ -177,7 +183,7 @@ class Agent():
 class OUNoise:
     """Ornstein-Uhlenbeck process."""
 
-    def __init__(self, size, seed, mu=[0.0,0.3], theta=0.15, sigma=0.15, sigma_min = 0.05, sigma_decay=.99):
+    def __init__(self, size, seed, mu=[0.0, 0.3], theta=0.15, sigma=0.15, sigma_min = 0.05, sigma_decay=.99):
         """Initialize parameters and noise process."""
         self.mu = mu * np.ones(size)
         self.theta = theta

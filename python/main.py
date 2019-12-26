@@ -13,7 +13,7 @@ def main():
                         metavar='[1-8]', help='number of agents (cars)')
     parser.add_argument('--num-obstacles', choices=range(0, 17), default=4, type=int,
                         metavar='[0-16]', help='number of random obstacles')
-    parser.add_argument('--name-weights', default='file_name', type=str, help='name of the weights file')
+    parser.add_argument('--weights-dir', default='file_name', type=str, help='name of the weights file')
     parser.add_argument('--save-memory', default=False, help='save the replay buffer', action='store_true')
     parser.add_argument('--num-episodes', help='number of running episodes')
     parser.add_argument('--env-setting', default=0, choices=range(0, 0), help='TODO')
@@ -22,8 +22,6 @@ def main():
                         type=int, help='number of last scores to average')
     parser.add_argument('--load-weights', default=False, action='store_true',
                         help='add this to load weights from previous runs')
-    parser.add_argument('--load-weights-file', type=str, required='--load-weights' in sys.argv,
-                        help='path of the weights file (if needed)')
     parser.add_argument('--load-mem', default=False, action='store_true',
                         help='add this to load replay buffer from previous run')
     parser.add_argument('--load-mem-file', type=str, required='--load-mem' in sys.argv,
