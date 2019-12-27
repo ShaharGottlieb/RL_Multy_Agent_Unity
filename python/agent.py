@@ -5,7 +5,7 @@ import os
 class AgentABC(metaclass=ABCMeta):
     @abstractmethod
     def __init__(self, state_size, action_size, num_agents, random_seed):
-        pass
+        self.debug_loss = 0
 
     @abstractmethod
     def step(self, states, actions, rewards, next_states, dones):
@@ -17,7 +17,7 @@ class AgentABC(metaclass=ABCMeta):
 
     @abstractmethod
     def reset(self):
-        pass
+        self.debug_loss = 0
 
     @abstractmethod
     def save_weights(self, directory_path):
