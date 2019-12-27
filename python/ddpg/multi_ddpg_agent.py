@@ -1,10 +1,14 @@
+import os
 
+from agent import AgentABC
 from ddpg.ddpg_agent import Agent as DDPGAgent
 
-class Agent():
+
+class Agent(AgentABC):
     """Interacts with and learns from the environment."""
 
     def __init__(self, state_size, action_size, num_agents, random_seed):
+        super().__init__(state_size, action_size, num_agents, random_seed)
         self.state_size = state_size
         self.action_size = action_size
         self.num_agents = num_agents
@@ -26,19 +30,25 @@ class Agent():
         for agent in self.agents:
             agent.reset()
 
-    def LoadWeights(self):
+    def load_weights(self, directory_path):
+        super().load_weights(directory_path)
         for agent in range(self.num_agents):
-            self.agents[agent].LoadWeights(str(agent))
+            self.agents[agent].load_weights(os.path.join(directory_path, str(agent)))
 
-    def SaveWeights(self):
+    def save_weights(self, directory_path):
+        # main directory
+        super().save_weights(directory_path)
         for agent in range(self.num_agents):
-            self.agents[agent].SaveWeights(str(agent))
+            # sub directory for each agent
+            self.agents[agent].save_weights(os.path.join(directory_path, str(agent)))
 
-    def SaveMem(self):
+    def save_mem(self, directory_path):
+        super().save_weights(directory_path)
         for agent in range(self.num_agents):
-            self.agents[agent].SaveMem(str(agent))
+            self.agents[agent].save_mem(os.path.join(directory_path, str(agent)))
 
-    def LoadMem(self):
+    def load_mem(self, directory_path):
+        super().load_mem(directory_path)
         for agent in range(self.num_agents):
-            self.agents[agent].LoadMem(str(agent))
+            self.agents[agent].load_mem(os.path.join(directory_path, str(agent)))
 
