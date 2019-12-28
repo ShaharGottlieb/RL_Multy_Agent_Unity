@@ -11,14 +11,16 @@ from maddpg.maddpg_agent import Agent as MADDPGAgent
 from mlagents.envs import UnityEnvironment
 
 
-def test_wrapper(env_config, test_config):
+def test_wrapper(env_config, wrapper_config):
     """
     ###################################
     STEP 1: Set the Test Parameters
     ======
             num_episodes (int): number of test episodes    """
-    num_episodes = test_config['num_episodes']
-    build_path   = test_config['build_path']
+    num_episodes = wrapper_config['num_episodes']
+    build = wrapper_config['build']
+    weights_path = ['weights_path']
+    agent_type = wrapper_config['agent_type']
 
 
     """
@@ -26,15 +28,7 @@ def test_wrapper(env_config, test_config):
     STEP 2: Start the Unity Environment
     # Use the corresponding call depending on your operating system 
     """
-    env = UnityEnvironment(file_name=build_path)
-    # env = UnityEnvironment(file_name=os.path.join(test_config[build_path], test_config[build_name]))
-    # - **Mac**: "Banana_Mac/Reacher.app"
-    # - **Windows** (x86): "Reacher_Windows_x86/Reacher.exe"
-    # - **Windows** (x86_64): "Reacher_Windows_x86_64/Reacher.exe"
-    # - **Linux** (x86): "Reacher_Linux/Reacher.x86"
-    # - **Linux** (x86_64): "Reacher_Linux/Reacher.x86_64"
-    # - **Linux** (x86, headless): "Reacher_Linux_NoVis/Reacher.x86"
-    # - **Linux** (x86_64, headless): "Reacher_Linux_NoVis/Reacher.x86_64"
+    env = UnityEnvironment(file_name=build)
 
     """
     #######################################
@@ -90,16 +84,19 @@ def test_wrapper(env_config, test_config):
     Here we initialize an agent using the Unity environments state and action size and number of Agents
     determined above.
     """
-    #Initialize Agent
-    #agent = DDPGAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
-    #agent = MADDPGAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
-    agent = MDDPGAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
+
+    if agent_type == 'ddpg':
+        agent = DDPGAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
+    elif agent_type == 'mddpg':
+        agent = MDDPGAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
+    else:
+        agent = MADDPGAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
 
     # Load trained model weights
-    agent.LoadWeights()
+    agent.load_weights(weights_path)
     """
     ###################################
-    STEP 6: Play Banana for specified number of Episodes
+    STEP 6: Run test for number of episodes
     """
     # loop from num_episodes
     for i_episode in range(1, num_episodes+1):

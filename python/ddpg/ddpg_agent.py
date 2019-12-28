@@ -152,20 +152,20 @@ class Agent(AgentABC):
 
     def load_weights(self, directory_path):
         super().load_weights(directory_path)
-        self.actor_target.load_state_dict(torch.load(self.suffix_handler(an_filename), map_location=device))
-        self.critic_target.load_state_dict(torch.load(self.suffix_handler(cn_filename), map_location=device))
-        self.actor_local.load_state_dict(torch.load(self.suffix_handler(an_filename), map_location=device))
-        self.critic_local.load_state_dict(torch.load(self.suffix_handler(cn_filename), map_location=device))
+        self.actor_target.load_state_dict(torch.load(os.path.join(directory_path, an_filename), map_location=device))
+        self.critic_target.load_state_dict(torch.load(os.path.join(directory_path, cn_filename), map_location=device))
+        self.actor_local.load_state_dict(torch.load(os.path.join(directory_path, an_filename), map_location=device))
+        self.critic_local.load_state_dict(torch.load(os.path.join(directory_path, cn_filename), map_location=device))
 
     def save_weights(self, directory_path):
         super().save_weights(directory_path)
-        torch.save(self.actor_local.state_dict(), an_filename)
-        torch.save(self.critic_local.state_dict(), cn_filename)
+        torch.save(self.actor_local.state_dict(), os.path.join(directory_path, an_filename))
+        torch.save(self.critic_local.state_dict(), os.path.join(directory_path, cn_filename))
 
     def save_mem(self, directory_path):
-        super.save_mem(directory_path)
+        super().save_mem(directory_path)
         self.memory.save(os.path.join(directory_path, "ddpg_memory"))
 
     def load_mem(self, directory_path):
-        super.load_mem(directory_path)
+        super().load_mem(directory_path)
         self.memory.load(os.path.join(directory_path, "ddpg_memory"))

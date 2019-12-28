@@ -7,7 +7,9 @@ from ddpg.ddpg_agent import Agent as DDPGAgent
 from ddpg.multi_ddpg_agent import Agent as MDDPGAgent
 from maddpg.maddpg_agent import Agent as MADDPGAgent
 from mlagents.envs import UnityEnvironment
-def train_wrapper(env_config, test_config):
+
+
+def train_wrapper(env_config, wrapper_config):
     """
     ###################################
     STEP 1: Set the Training Parameters
@@ -17,15 +19,16 @@ def train_wrapper(env_config, test_config):
             scores_average_window (int): the window size employed for calculating the average score (e.g. 100)
             solved_score (float): the average score required for the environment to be considered solved
         """
-    num_episodes = test_config['num_episodes']
-    scores_average_window = test_config['scores_average_window']
-    solved_score = test_config['solved_score']
-    load_weights = test_config['load_weights']
-    load_weights_path = test_config['load_weights_path']
-    load_mem = test_config['load_mem']
-    load_mem_path = test_config['load_mem_path']
-    build_path = test_config['build_path']
-    no_graphics_in = test_config['no_graphics']
+    num_episodes = wrapper_config['num_episodes']
+    scores_average_window = wrapper_config['scores_avg_window']
+    solved_score = wrapper_config['solved_score']
+    load_weights = wrapper_config['load_weights']
+    weights_path = wrapper_config['weights_path']
+    load_mem = wrapper_config['load_mem']
+    mem_path = wrapper_config['mem_path']
+    build_path = wrapper_config['build']
+    no_graphics_in = wrapper_config['no_graphics']
+    agent_type = wrapper_config['agent_type']
     episode_scores = []
 
 
@@ -36,15 +39,6 @@ def train_wrapper(env_config, test_config):
     # Use the corresponding call depending on your operating system 
     """
     env = UnityEnvironment(file_name=build_path, no_graphics=no_graphics_in)
-    #env = UnityEnvironment(file_name="/Users/rotemlevinson/Dropbox/Technion/Semester6/Project/Project/maDdpg_4_cars.app", no_graphics=True)
-    #env = UnityEnvironment(file_name="build_linux_big/my_race.x86_64", no_graphics=True)
-    # env = UnityEnvironment(file_name=None, no_graphics=True)
-    # - **Windows** (x86): "Reacher_Windows_x86/Reacher.exe"
-    # - **Windows** (x86_64): "Reacher_Windows_x86_64/Reacher.exe"
-    # - **Linux** (x86): "Reacher_Linux/Reacher.x86"
-    # - **Linux** (x86_64): "Reacher_Linux/Reacher.x86_64"
-    # - **Linux** (x86, headless): "Reacher_Linux_NoVis/Reacher.x86"
-    # - **Linux** (x86_64, headless): "Reacher_Linux_NoVis/Reacher.x86_64"
 
     """
     #######################################
@@ -89,8 +83,8 @@ def train_wrapper(env_config, test_config):
 
     """
     ###################################
-    STEP 5: Create a DDPG Agent from the Agent Class in ddpg_agent.py
-    A DDPG agent initialized with the following parameters.
+    STEP 5: Create an Agent from the Agent Class in Agent.py
+    Any agent initialized with the following parameters.
         ======
         state_size (int): dimension of each state (required)
         action_size (int): dimension of each action (required)
@@ -100,16 +94,18 @@ def train_wrapper(env_config, test_config):
     Here we initialize an agent using the Unity environments state and action size and number of Agents
     determined above.
     """
-    #agent = DDPGAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
-    agent = MADDPGAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
-    #agent = MDDPGAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
-
+    if agent_type == 'ddpg':
+        agent = DDPGAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
+    elif agent_type == 'mddpg':
+        agent = MDDPGAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
+    else:
+        agent = MADDPGAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
 
     # Load trained model weights
     if load_weights:
-        agent.LoadWeights()
+        agent.load_weights(weights_path)
     if load_mem:
-        agent.LoadMem()
+        agent.load_mem(mem_path)
 
     """
     ###################################
@@ -133,7 +129,6 @@ def train_wrapper(env_config, test_config):
 
     # loop from num_episodes
     for i_episode in range(1, num_episodes+1):
-
         # reset the unity environment at the beginning of each episode
         env_info = env.reset(train_mode=True, config=env_config)[brain_name]
 
@@ -182,15 +177,15 @@ def train_wrapper(env_config, test_config):
         # Calculate mean score over last 100 episodes
         # Mean score is calculated over current episodes until i_episode > 100
         episode_scores.append(np.mean(agent_scores))
-        average_score = np.mean(episode_scores[i_episode-min(i_episode,scores_average_window):i_episode+1])
+        average_score = np.mean(episode_scores[i_episode-min(i_episode, scores_average_window):i_episode+1])
 
         #Print current and average score
         print('\nEpisode {}\tEpisode Score: {:.3f}\tAverage Score: {:.3f}\tNumber Of Steps{}'.format(i_episode, episode_scores[i_episode-1], average_score,steps), end="")
 
         # Save trained  Actor and Critic network weights after each episode
-        agent.SaveWeights()
-        if (i_episode%50) == 0:
-            agent.SaveMem()
+        agent.save_weights(weights_path)
+        if (i_episode % 50) == 0:
+            agent.save_mem(mem_path)
         # Check to see if the task is solved (i.e,. avearge_score > solved_score over 100 episodes).
         # If yes, save the network weights and scores and end training.
         if i_episode > scores_average_window*2 and average_score >= solved_score:
@@ -200,7 +195,7 @@ def train_wrapper(env_config, test_config):
             scores_filename = "ddpgAgent_Scores.csv"
             np.savetxt(scores_filename, episode_scores, delimiter=",")
             break
-    agent.SaveMem()
+    agent.save_mem(mem_path)
 
     """
     ###################################
