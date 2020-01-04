@@ -1,9 +1,7 @@
 import argparse
-import sys
 from test import test_wrapper
 from train import train_wrapper
 
-# /Users/rotemlevinson/RL_project_unity/build1.app
 
 def main():
     parser = argparse.ArgumentParser(prog='RL_Multi_agent_Cars',
@@ -30,16 +28,23 @@ def main():
                         help='path of replay buffer file to load or store')
     parser.add_argument('--solved-score', default=40, type=int,
                         help='score that complete the episode')
-    parser.add_argument('--no-graphics', default=False, action='store_true',
+    parser.add_argument('--no-graphics', action='store_true',
                         help='add this to avoid graphics while training')
     parser.add_argument('--agent', choices=['ddpg', 'mddpg', 'maddpg'], required=True,
                         help='type of agent')
+    parser.add_argument('--print_agent_loss', default=False, action='store_true',
+                        help='print agent\'s loss after each episode (default=False)')
+    parser.add_argument('--save_best_weights', default=True, action='store_true',
+                        help='save the best weights so far (by average score). saving directory will be the'
+                             ' same as weights-path with suffix \'best\' default=True')
+    parser.add_argument('--save_score_log', default=True, action='store_true',
+                        help='saves a csv file with the ongoing scores of each episode (default=True)')
     args = parser.parse_args()
     if args.num_episodes is None:
-        if args.mode == 'train':
-            args.num_episodes = 1000
-        else:
-            args.num_episodes = 5
+        args.num_episodes = 1000 if args.mode == 'train' else 5
+    if args.no_graphics is None:
+        args.no_graphics = True if args.mode == 'train' else False
+
     env_config = {'num_agents': args.num_agents,
                   'num_obstacles': args.num_obstacles,
                   'setting': args.env_setting
@@ -54,7 +59,7 @@ def main():
                       'mem_path': args.mem_path,
                       'no_graphics': args.no_graphics,
                       'agent_type': args.agent
-                    }
+                      }
     print(env_config)
     print(wrapper_config)
     if args.mode == 'test':
@@ -65,4 +70,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-

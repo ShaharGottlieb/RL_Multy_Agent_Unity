@@ -2,6 +2,7 @@ import os
 
 from agent import AgentABC
 from ddpg.ddpg_agent import Agent as DDPGAgent
+import numpy as np
 
 
 class Agent(AgentABC):
@@ -22,6 +23,7 @@ class Agent(AgentABC):
             dones_single = [dones[i]]
             rewards_single = [rewards[i]]
             self.agents[i].step(states_single, actions_single, rewards_single, next_states_single, dones_single)
+        self.debug_loss = np.mean([agent.debug_loss for agent in self.agents])
 
     def act(self, state, add_noise=True):
         return [self.agents[i].act(state[i].reshape(1,self.state_size), add_noise) for i in range(self.num_agents)]

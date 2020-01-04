@@ -87,6 +87,7 @@ class Agent(AgentABC):
                 if len(self.memory) > 1000:
                     experiences = self.memory.sample()
                     self.learn(experiences)
+                    self.debug_loss = np.mean(self.mse_error_list)
             self.update_target_networks()
 
     def act(self, state, add_noise=True):
@@ -124,11 +125,6 @@ class Agent(AgentABC):
         next_states_concated = next_states_batched.view([BATCH_SIZE, self.num_agents * self.state_size])
         actions_concated = actions_batched.view([BATCH_SIZE, self.num_agents * self.action_size])
 
-        # states, actions, rewards, next_states, dones = experiences
-        # reshape to select partial observation
-        # next_states_batched = next_states.reshape(BATCH_SIZE, self.num_agents, self.state_size)
-        # states_batched = states.reshape(BATCH_SIZE, self.num_agents, self.state_size)
-        # actions_batched = actions.reshape(BATCH_SIZE, self.num_agents, self.action_size)
         for agent in range(self.num_agents):
             actions_next_batched = [self.actors_target[i](next_states_batched[:, i, :]) for i in
                                     range(self.num_agents)]

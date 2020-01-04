@@ -1,8 +1,6 @@
 ###################################
 # Import Required Packages
 import numpy as np
-import os
-from collections import deque
 from ddpg.ddpg_agent import Agent as DDPGAgent
 from ddpg.multi_ddpg_agent import Agent as MDDPGAgent
 from maddpg.maddpg_agent import Agent as MADDPGAgent
@@ -29,9 +27,10 @@ def train_wrapper(env_config, wrapper_config):
     build_path = wrapper_config['build']
     no_graphics_in = wrapper_config['no_graphics']
     agent_type = wrapper_config['agent_type']
+    print_agent_loss = wrapper_config['print_agent_loss']
+    save_log = wrapper_config['save_score_log']
+    save_best_weights = wrapper_config['save_best_weights']
     episode_scores = []
-
-
 
     """
     ###################################
@@ -80,7 +79,6 @@ def train_wrapper(env_config, wrapper_config):
     num_agents = len(env_info.agents)
     print('\nNumber of Agents: ', num_agents)
 
-
     """
     ###################################
     STEP 5: Create an Agent from the Agent Class in Agent.py
@@ -127,6 +125,7 @@ def train_wrapper(env_config, wrapper_config):
     That is, if the average score for the previous 100 episodes is greater than solved_score.
     """
 
+    best_score = -np.inf
     # loop from num_episodes
     for i_episode in range(1, num_episodes+1):
         # reset the unity environment at the beginning of each episode
@@ -157,9 +156,9 @@ def train_wrapper(env_config, wrapper_config):
 
             next_states = env_info.vector_observations   # get the next states for each unity agent in the environment
             rewards = env_info.rewards                   # get the rewards for each unity agent in the environment
-            dones = env_info.local_done                  # see if episode has finished for each unity agent in the environment
+            dones = env_info.local_done           # see if episode has finished for each unity agent in the environment
 
-            #Send (S, A, R, S') info to the training agent for replay buffer (memory) and network updates
+            # Send (S, A, R, S') info to the training agent for replay buffer (memory) and network updates
             agent.step(states, actions, rewards, next_states, dones)
 
             # set new states to current states for determining next actions
@@ -180,20 +179,29 @@ def train_wrapper(env_config, wrapper_config):
         average_score = np.mean(episode_scores[i_episode-min(i_episode, scores_average_window):i_episode+1])
 
         #Print current and average score
-        print('\nEpisode {}\tEpisode Score: {:.3f}\tAverage Score: {:.3f}\tNumber Of Steps{}'.format(i_episode, episode_scores[i_episode-1], average_score,steps), end="")
+        print('\nEpisode {}\tEpisode Score: {:.3f}\tAverage Score: {:.3f}\tNumber Of Steps{}'.format(
+            i_episode, episode_scores[i_episode-1], average_score, steps), end="")
+        if print_agent_loss:
+            print('\t episode loss: {}'.format(agent.debug_loss))
+
+        if save_log:
+            # Save the recorded Scores data
+            scores_filename = "Agent_Scores.csv"
+            np.savetxt(scores_filename, episode_scores, delimiter=",")
 
         # Save trained  Actor and Critic network weights after each episode
         agent.save_weights(weights_path)
+        if save_best_weights:
+            if best_score < average_score:
+                best_score = average_score
+                agent.save_weights(weights_path+'_best')
+
         if (i_episode % 50) == 0:
             agent.save_mem(mem_path)
-        # Check to see if the task is solved (i.e,. avearge_score > solved_score over 100 episodes).
+        # Check to see if the task is solved (i.e,. average_score > solved_score over 100 episodes).
         # If yes, save the network weights and scores and end training.
         if i_episode > scores_average_window*2 and average_score >= solved_score:
             print('\nEnvironment solved in {:d} episodes!\tAverage Score: {:.3f}'.format(i_episode, average_score))
-
-            # Save the recorded Scores data
-            scores_filename = "ddpgAgent_Scores.csv"
-            np.savetxt(scores_filename, episode_scores, delimiter=",")
             break
     agent.save_mem(mem_path)
 

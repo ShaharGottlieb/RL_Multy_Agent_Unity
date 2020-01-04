@@ -57,6 +57,9 @@ class Agent(AgentABC):
 
         # Replay memory
         self.memory = ReplayBuffer(action_size, BUFFER_SIZE, BATCH_SIZE, random_seed)
+
+        # debug of the MSE critic loss
+        self.mse_error_list = []
     
     def step(self, states, actions, rewards, next_states, dones):
         """Save experience in replay memory, and use random sample from buffer to learn."""
@@ -68,6 +71,7 @@ class Agent(AgentABC):
         if len(self.memory) > BATCH_SIZE:
             experiences = self.memory.sample()
             self.learn(experiences)
+            self.debug_loss = np.mean(self.mse_error_list)
 
     def act(self, state, add_noise=True):
         """Returns actions for given state as per current policy."""
@@ -84,7 +88,9 @@ class Agent(AgentABC):
         return np.clip(acts, -1, 1)
 
     def reset(self):
+        super().reset()
         self.noise.reset()
+        self.mse_error_list = []
 
     def learn(self, experiences):
         """Update policy and value parameters using given batch of experience tuples.
@@ -109,6 +115,7 @@ class Agent(AgentABC):
         # Compute critic loss
         Q_expected = self.critic_local(states, actions)
         critic_loss = F.mse_loss(Q_expected, Q_targets)
+        self.mse_error_list.append(critic_loss.detach().cpu().numpy())
         # Minimize the loss
         self.critic_optimizer.zero_grad()
         critic_loss.backward()
@@ -140,15 +147,6 @@ class Agent(AgentABC):
         """
         for target_param, local_param in zip(target_model.parameters(), local_model.parameters()):
             target_param.data.copy_(tau*local_param.data + (1.0-tau)*target_param.data)
-
-    @staticmethod
-    def suffix_handler(filename, suffix):    #this is so we can train single agent and the load to multi-agents
-        if os.path.exists(filename+suffix):
-            return filename+suffix
-        elif os.path.exists(filename+str(0)):
-            return filename+str(0)
-        else:
-            return filename
 
     def load_weights(self, directory_path):
         super().load_weights(directory_path)
