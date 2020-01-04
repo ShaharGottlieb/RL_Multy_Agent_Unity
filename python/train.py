@@ -5,6 +5,7 @@ from ddpg.ddpg_agent import Agent as DDPGAgent
 from ddpg.multi_ddpg_agent import Agent as MDDPGAgent
 from maddpg.maddpg_agent import Agent as MADDPGAgent
 from mlagents.envs import UnityEnvironment
+import os
 
 
 def train_wrapper(env_config, wrapper_config):
@@ -26,7 +27,7 @@ def train_wrapper(env_config, wrapper_config):
     mem_path = wrapper_config['mem_path']
     build_path = wrapper_config['build']
     no_graphics_in = wrapper_config['no_graphics']
-    agent_type = wrapper_config['agent_type']
+    agent_type = wrapper_config['agent']
     print_agent_loss = wrapper_config['print_agent_loss']
     save_log = wrapper_config['save_score_log']
     save_best_weights = wrapper_config['save_best_weights']
@@ -186,8 +187,10 @@ def train_wrapper(env_config, wrapper_config):
 
         if save_log:
             # Save the recorded Scores data
+            if not (os.path.isdir(weights_path)):
+                os.mkdir(weights_path)
             scores_filename = "Agent_Scores.csv"
-            np.savetxt(scores_filename, episode_scores, delimiter=",")
+            np.savetxt(os.path.join(weights_path,scores_filename), episode_scores, delimiter=",")
 
         # Save trained  Actor and Critic network weights after each episode
         agent.save_weights(weights_path)

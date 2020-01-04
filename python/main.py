@@ -49,17 +49,7 @@ def main():
                   'num_obstacles': args.num_obstacles,
                   'setting': args.env_setting
                   }
-    wrapper_config = {'num_episodes': args.num_episodes,
-                      'build': args.build,
-                      'scores_avg_window': args.scores_avg_window,
-                      'solved_score': args.solved_score,
-                      'load_weights': args.load_weights,
-                      'load_mem': args.load_mem,
-                      'weights_path': args.weights_path,
-                      'mem_path': args.mem_path,
-                      'no_graphics': args.no_graphics,
-                      'agent_type': args.agent
-                      }
+    wrapper_config = vars(args)
     print(env_config)
     print(wrapper_config)
     if args.mode == 'test':

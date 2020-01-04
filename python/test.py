@@ -20,7 +20,7 @@ def test_wrapper(env_config, wrapper_config):
     num_episodes = wrapper_config['num_episodes']
     build = wrapper_config['build']
     weights_path = ['weights_path']
-    agent_type = wrapper_config['agent_type']
+    agent_type = wrapper_config['agent']
 
 
     """
