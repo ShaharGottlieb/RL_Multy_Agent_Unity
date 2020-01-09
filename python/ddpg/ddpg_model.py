@@ -1,9 +1,8 @@
 """
-Example Neural Network Model for Vector Observation DDPG (Actor-Critic) Agent
+Neural Network Model for Vector Observation DDPG (Actor-Critic) Agent
 DDPG Model for Unity ML-Agents Environments using PyTorch
 
-Project for Udacity Danaodgree in Deep Reinforcement Learning (DRL)
-Code expanded and adapted from code examples provided by Udacity DRL Team, 2018.
+Code expanded and adapted from code examples provided by Udacity DRL Team, 201
 """
 
 import numpy as np
@@ -12,10 +11,12 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+
 def hidden_init(layer):
     fan_in = layer.weight.data.size()[0]
     lim = 1. / np.sqrt(fan_in)
-    return (-lim, lim)
+    return -lim, lim
+
 
 class Actor(nn.Module):
     """Actor (Policy) Model."""
