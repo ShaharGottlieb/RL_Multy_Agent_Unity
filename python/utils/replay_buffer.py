@@ -16,6 +16,7 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 Experience = namedtuple("Experience", field_names=["state", "action", "reward", "next_state", "done"])
 
+
 class ReplayBuffer:
     """Fixed-size buffer to store experience tuples."""
 
@@ -46,18 +47,20 @@ class ReplayBuffer:
         next_states = torch.from_numpy(np.array([e.next_state for e in experiences if e is not None])).float().to(device)
         dones = torch.from_numpy(np.array([e.done for e in experiences if e is not None]).astype(np.uint8)).float().to(device)
 
-        return (states, actions, rewards, next_states, dones)
+        return states, actions, rewards, next_states, dones
 
     def __len__(self):
         """Return the current size of internal memory."""
         return len(self.memory)
 
     def save(self, filename):
+        """ save pickled replay buffer """
         f = open(filename, 'wb')
         pickle.dump([self.memory, self.action_size], f)
         f.close()
 
     def load(self, filename):
+        """ load pickled replay buffer """
         f = open(filename, "rb")
         [memory, action_size] = pickle.load(f)
         assert(action_size == self.action_size)

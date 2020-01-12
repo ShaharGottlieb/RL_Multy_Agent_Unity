@@ -1,13 +1,10 @@
 import os
-
 import numpy as np
 import random
-import copy
 from agent import AgentABC
 from maddpg.maddpg_model import Actor, Critic
 from utils.replay_buffer import ReplayBuffer
 from utils.noise import OUNoise
-from copy import deepcopy
 
 import torch
 import torch.nn.functional as F
@@ -33,12 +30,13 @@ class Agent(AgentABC):
     """Interacts with and learns from the environment."""
 
     def __init__(self, state_size, action_size, num_agents, random_seed):
-        """Initialize an Agent object.
+        """Initialize an MADDPG Agent object.
         Params
         ======
-            state_size (int): dimension of each state
-            action_size (int): dimension of each action
-            random_seed (int): random seed
+            :param state_size: dimension of each state
+            :param action_size: dimension of each action
+            :param num_agents: number of inner agents
+            :param random_seed: random seed
         """
         super().__init__(state_size, action_size, num_agents, random_seed)
         self.state_size = state_size
@@ -104,17 +102,17 @@ class Agent(AgentABC):
         return np.clip(acts, -1, 1)
 
     def reset(self):
+        """ see abstract class """
         super().reset()
         self.noise.reset()
         self.mse_error_list = []
 
     def learn(self, experiences):
         """Update policy and value parameters using given batch of experience tuples.
-        Q_targets = r + γ * critic_target(next_state, actor_target(next_state))
+        Q_targets = r + γ * critic_target(next_full_state, actors_target(next_partial_state) )
         where:
             actor_target(state) -> action
             critic_target(state, action) -> Q-value
-
         Params
         ======
             experiences (Tuple[torch.Tensor]): tuple of (s, a, r, s', done) tuples 
@@ -178,6 +176,7 @@ class Agent(AgentABC):
             target_param.data.copy_(tau * local_param.data + (1.0 - tau) * target_param.data)
 
     def load_weights(self, directory_path):
+        """ see abstract class """
         super().load_weights(directory_path)
         actor_weights = os.path.join(directory_path, an_filename)
         critic_weights = os.path.join(directory_path, cn_filename)
@@ -190,6 +189,7 @@ class Agent(AgentABC):
                 torch.load(critic_weights + "_" + str(agent), map_location=device))
 
     def save_weights(self, directory_path):
+        """ see abstract class """
         super().save_weights(directory_path)
         actor_weights = os.path.join(directory_path, an_filename)
         critic_weights = os.path.join(directory_path, cn_filename)
@@ -198,10 +198,11 @@ class Agent(AgentABC):
             torch.save(self.critics_local[agent].state_dict(), critic_weights + "_" + str(agent))
 
     def save_mem(self, directory_path):
+        """ see abstract class """
         super().save_mem(directory_path)
         self.memory.save(os.path.join(directory_path, memory_filename))
 
     def load_mem(self, directory_path):
+        """ see abstract class """
         super().load_mem(directory_path)
         self.memory.load(os.path.join(directory_path, memory_filename))
-

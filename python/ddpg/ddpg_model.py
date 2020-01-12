@@ -2,7 +2,7 @@
 Neural Network Model for Vector Observation DDPG (Actor-Critic) Agent
 DDPG Model for Unity ML-Agents Environments using PyTorch
 
-Code expanded and adapted from code examples provided by Udacity DRL Team, 201
+Code expanded and adapted from code examples in github.
 """
 
 import numpy as np

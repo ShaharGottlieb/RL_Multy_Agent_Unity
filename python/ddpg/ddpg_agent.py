@@ -1,9 +1,6 @@
 import numpy as np
 import random
-import copy
-from collections import namedtuple, deque
 from agent import AgentABC
-
 from ddpg.ddpg_model import Actor, Critic
 from utils.replay_buffer import ReplayBuffer
 from utils.noise import OUNoise
@@ -18,23 +15,22 @@ BATCH_SIZE = 128        # minibatch size
 GAMMA = 0.99            # discount factor
 TAU = 1e-3              # for soft update of target parameters
 LR_ACTOR = 1e-4         # learning rate of the actor 
-LR_CRITIC = 1e-4       # learning rate of the critic
+LR_CRITIC = 1e-4        # learning rate of the critic
 WEIGHT_DECAY = 0.0      # L2 weight decay
 
-an_filename = "ddpgActor_Model.pth"
+an_filename = "ddpgActor_Model.pth"  # default weights file names
 cn_filename = "ddpgCritic_Model.pth"
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 
 class Agent(AgentABC):
     def __init__(self, state_size, action_size, num_agents, random_seed):
-        """Initialize an Agent object.
-
-        Params
-        ======
-            state_size (int): dimension of each state
-            action_size (int): dimension of each action
-            random_seed (int): random seed
+        """
+        Initialize an DDPG Agent object.
+            :param state_size (int): dimension of each state
+            :param action_size (int): dimension of each action
+            :param num_agents (int): number of agents in environment ot use ddpg
+            :param random_seed (int): random seed
         """
         super().__init__(state_size, action_size, num_agents, random_seed)
         self.state_size = state_size
@@ -65,7 +61,7 @@ class Agent(AgentABC):
         """Save experience in replay memory, and use random sample from buffer to learn."""
         # Save experience / reward
         for agent in range(self.num_agents):
-            self.memory.add(states[agent,:], actions[agent,:], rewards[agent], next_states[agent,:], dones[agent])
+            self.memory.add(states[agent, :], actions[agent, :], rewards[agent], next_states[agent, :], dones[agent])
 
         # Learn, if enough samples are available in memory
         if len(self.memory) > BATCH_SIZE:
@@ -88,6 +84,7 @@ class Agent(AgentABC):
         return np.clip(acts, -1, 1)
 
     def reset(self):
+        """ see abstract class """
         super().reset()
         self.noise.reset()
         self.mse_error_list = []
@@ -149,6 +146,7 @@ class Agent(AgentABC):
             target_param.data.copy_(tau*local_param.data + (1.0-tau)*target_param.data)
 
     def load_weights(self, directory_path):
+        """ see abstract class """
         super().load_weights(directory_path)
         self.actor_target.load_state_dict(torch.load(os.path.join(directory_path, an_filename), map_location=device))
         self.critic_target.load_state_dict(torch.load(os.path.join(directory_path, cn_filename), map_location=device))
@@ -156,14 +154,17 @@ class Agent(AgentABC):
         self.critic_local.load_state_dict(torch.load(os.path.join(directory_path, cn_filename), map_location=device))
 
     def save_weights(self, directory_path):
+        """ see abstract class """
         super().save_weights(directory_path)
         torch.save(self.actor_local.state_dict(), os.path.join(directory_path, an_filename))
         torch.save(self.critic_local.state_dict(), os.path.join(directory_path, cn_filename))
 
     def save_mem(self, directory_path):
+        """ see abstract class """
         super().save_mem(directory_path)
         self.memory.save(os.path.join(directory_path, "ddpg_memory"))
 
     def load_mem(self, directory_path):
+        """ see abstract class """
         super().load_mem(directory_path)
         self.memory.load(os.path.join(directory_path, "ddpg_memory"))

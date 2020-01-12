@@ -2,11 +2,14 @@ import numpy as np
 import random
 import copy
 
+
 class OUNoise:
     """Ornstein-Uhlenbeck process."""
 
-    def __init__(self, size, seed, mu=[0.0, 0.3], theta=0.15, sigma=0.15, sigma_min = 0.05, sigma_decay=.99):
+    def __init__(self, size, seed, mu=None, theta=0.15, sigma=0.15, sigma_min=0.05, sigma_decay=.99):
         """Initialize parameters and noise process."""
+        if mu is None:
+            mu = [0.0, 0.3]  # add some advantage in training for hitting the gas (this makes the training faster).
         self.mu = mu * np.ones(size)
         self.theta = theta
         self.sigma = sigma
@@ -20,7 +23,7 @@ class OUNoise:
     def reset(self):
         """Reset the internal state (= noise) to mean (mu)."""
         self.state = copy.copy(self.mu)
-        """Resduce  sigma from initial value to min"""
+        """Reduce sigma from initial value to min"""
         self.sigma = max(self.sigma_min, self.sigma*self.sigma_decay)
 
     def sample(self):
