@@ -2,39 +2,45 @@
 # Import Required Packages
 import numpy as np
 import os
-from ddpg.ddpg_agent import Agent as DDPGAgent
-from ddpg.multi_ddpg_agent import Agent as MDDPGAgent
-from maddpg.maddpg_agent import Agent as MADDPGAgent
 from mlagents.envs import UnityEnvironment
+from agent import AgentABC
 
 
 def test_wrapper(env_config, wrapper_config):
     """
-    ###################################
-    STEP 1: Set the Test Parameters
-    ======
-            num_episodes (int): number of test episodes    """
+    Set the Test Parameters
+    """
+    # num_episodes (int): number of test episodes
     num_episodes = wrapper_config['num_episodes']
+
+    # build_path: path to the build of the unity environment.
     build = None if wrapper_config['build'] == 'None' else wrapper_config['build']
+    if (build is not None) and (not os.path.isfile(build)):
+        print('--build is not a valid path')
+        raise FileNotFoundError
+
+    # weights_path: path to the directory containing the weights (same directory to save them)
     weights_path = wrapper_config['weights_path']
-    if not (os.path.isdir(weights_path)):
+    if not os.path.isdir(weights_path):
         print('--weights-path is not a valid directory')
         raise NotADirectoryError
+
+    # agent_type (DDPG | MDDPG | MADDPG)
     agent_type = wrapper_config['agent']
+    if not issubclass(agent_type, AgentABC):
+        print('invalid agent type')
+        raise TypeError
 
     """
-    ###################################
-    STEP 2: Start the Unity Environment
-    # Use the corresponding call depending on your operating system 
+    Start the Unity Environment
     """
     env = UnityEnvironment(file_name=build)
 
     """
-    #######################################
-    STEP 3: Get The Unity Environment Brian
+    Get The Unity Environment Brain
     Unity ML-Agent applications or Environments contain "BRAINS" which are responsible for deciding 
     the actions an agent or set of agents should take given a current set of environment (state) 
-    observations. The Reacher environment has a single Brian, thus, we just need to access the first brain 
+    observations. The Race environment has a single Brain, thus, we just need to access the first brain 
     available (i.e., the default brain). We then set the default brain as the brain that will be controlled.
     """
     # Get the default brain
@@ -43,21 +49,17 @@ def test_wrapper(env_config, wrapper_config):
     # Assign the default brain as the brain to be controlled
     brain = env.brains[brain_name]
 
-
     """
-    #############################################
-    STEP 4: Determine the size of the Action and State Spaces and the Number of Agents
-    
-    The observation space consists of 33 variables corresponding to
-    position, rotation, velocity, and angular velocities of the arm. 
-    Each action is a vector with four numbers, corresponding to torque 
-    applicable to two joints. Every entry in the action vector should 
-    be a number between -1 and 1.
-    
-    The reacher environment can contain multiple agents in the environment to increase training time. 
-    To use multiple (active) training agents we need to know how many there are.
+    Determine the size of the Action and State Spaces and the Number of Agents.
+    The observation space consists of variables corresponding to Ray Cast in different direction, 
+    velocity and direction.  
+    Each action is a vector with 2 numbers, corresponding to steer left/right and brake/drive (in this order).
+    each action is a number between -1 and 1.
+    num_agents will correspond to the number of agent using the same brain -
+    (since all cars use the same action / observation space they all use the same brain)
+    if in the future one should have different cars use different observation space, 
+    one will need to split them into different brains..
     """
-
     # Set the number of actions or action size
     action_size = brain.vector_action_space_size
 
@@ -69,33 +71,26 @@ def test_wrapper(env_config, wrapper_config):
     num_agents = len(env_info.agents)
     print('\nNumber of Agents: ', num_agents)
 
-
     """
-    ###################################
-    STEP 5: Initialize a DDPG Agent from the Agent Class in dqn_agent.py
-    A DDPG agent initialized with the following parameters.
+    Initialize an Agent from the Agent Class in Agent.py
+    Any agent initialized with the following parameters.
         ======
         state_size (int): dimension of each state (required)
         action_size (int): dimension of each action (required)
         num_agents (int): number of agents in the unity environment
         seed (int): random seed for initializing training point (default = 0)
-    
+
     Here we initialize an agent using the Unity environments state and action size and number of Agents
     determined above.
+    TODO - agent type check, add type hints to abstract class.
     """
-
-    if agent_type == 'ddpg':
-        agent = DDPGAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
-    elif agent_type == 'mddpg':
-        agent = MDDPGAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
-    else:
-        agent = MADDPGAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
+    agent: AgentABC = agent_type(state_size=state_size,
+                                 action_size=action_size[0], num_agents=num_agents, random_seed=0)
 
     # Load trained model weights
     agent.load_weights(weights_path)
     """
-    ###################################
-    STEP 6: Run test for number of episodes
+    Run test for number of episodes
     """
     # loop from num_episodes
     for i_episode in range(1, num_episodes+1):
@@ -126,7 +121,7 @@ def test_wrapper(env_config, wrapper_config):
 
             next_states = env_info.vector_observations   # get the next states for each unity agent in the environment
             rewards = env_info.rewards                   # get the rewards for each unity agent in the environment
-            dones = env_info.local_done                  # see if episode has finished for each unity agent in the environment
+            dones = env_info.local_done           # see if episode has finished for each unity agent in the environment
 
             # set new states to current states for determining next actions
             states = next_states
@@ -142,10 +137,8 @@ def test_wrapper(env_config, wrapper_config):
         # Print current average score
         print('\nEpisode {}\tAverage Score: {:.2f}'.format(i_episode, np.mean(scores), end=""))
 
-
     """
-    ###################################
-    STEP 7: Everything is Finished -> Close the Environment.
+    Everything is Finished -> Close the Environment.
     """
     env.close()
 

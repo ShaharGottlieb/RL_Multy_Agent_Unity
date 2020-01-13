@@ -1,51 +1,80 @@
 ###################################
 # Import Required Packages
 import numpy as np
-from ddpg.ddpg_agent import Agent as DDPGAgent
-from ddpg.multi_ddpg_agent import Agent as MDDPGAgent
-from maddpg.maddpg_agent import Agent as MADDPGAgent
+from agent import AgentABC
 from mlagents.envs import UnityEnvironment
 import os
 
 
 def train_wrapper(env_config, wrapper_config):
     """
-    ###################################
-    STEP 1: Set the Training Parameters
-    ======
-            num_episodes (int): maximum number of training episodes
-            episode_scores (float): list to record the scores obtained from each episode
-            scores_average_window (int): the window size employed for calculating the average score (e.g. 100)
-            solved_score (float): the average score required for the environment to be considered solved
-        """
+    Set the Training Parameters
+    :param env_config: dictionary, used to pass parameters into the environment
+    :param wrapper_config: dictionary of user defined variables.
+    """
+    # num_episodes (int): maximum number of training episodes
     num_episodes = wrapper_config['num_episodes']
+
+    # scores_average_window (int): the window size employed for calculating the average score
     scores_average_window = wrapper_config['scores_avg_window']
+
+    # solved_score (float): the average score required for the environment to be considered solved
     solved_score = wrapper_config['solved_score']
+
+    # load_weights (bool): whether or not to start training with loaded weights
     load_weights = wrapper_config['load_weights']
+
+    # weights_path: path to the directory containing the weights (same directory to save them)
     weights_path = wrapper_config['weights_path']
+    if load_weights and not(os.path.isdir(weights_path)):
+        print('weights dir does not exist')
+        raise NotADirectoryError
+
+    # load_mem (bool): whether or not to continue training with loaded memory
     load_mem = wrapper_config['load_mem']
+    # mem_path: path to directory containing the memory to load
     mem_path = wrapper_config['mem_path']
+    if load_mem and not(os.path.isdir(mem_path)):
+        print('mem dir does not exist')
+        raise NotADirectoryError
+
+    # build_path: path to the build of the unity environment.
     build_path = None if wrapper_config['build'] == 'None' else wrapper_config['build']
-    no_graphics_in = wrapper_config['no_graphics']
+    if (build_path is not None) and (not os.path.isfile(build_path)):
+        print('--build is not a valid path')
+        raise FileNotFoundError
+
+    # no_graphics (bool): whether or not to start the environment without graphics (default = True in training)
+    no_graphics_in = not wrapper_config['show_graphics']
+
+    # agent_type (DDPG | MDDPG | MADDPG)
     agent_type = wrapper_config['agent']
+    if not issubclass(agent_type, AgentABC):
+        print('invalid agent type')
+        raise TypeError
+
+    # print_Agent_loss (bool): whether or not to print the agent's loss (mse for critic) after every episode
     print_agent_loss = wrapper_config['print_agent_loss']
+
+    # save_log (bool): whether or not to save the episodes score (csv format, default is True)
     save_log = wrapper_config['save_score_log']
+
+    # save_best_weights (bool): save also the best weights of the session (by average score)
     save_best_weights = wrapper_config['save_best_weights']
+
+    # episode_scores (float): list to record the scores obtained from each episode
     episode_scores = []
 
     """
-    ###################################
-    STEP 2: Start the Unity Environment
-    # Use the corresponding call depending on your operating system 
+    Start the Unity Environment
     """
     env = UnityEnvironment(file_name=build_path, no_graphics=no_graphics_in)
 
     """
-    #######################################
-    STEP 3: Get The Unity Environment Brian
+    Get The Unity Environment Brain
     Unity ML-Agent applications or Environments contain "BRAINS" which are responsible for deciding 
     the actions an agent or set of agents should take given a current set of environment (state) 
-    observations. The Reacher environment has a single Brian, thus, we just need to access the first brain 
+    observations. The Race environment has a single Brain, thus, we just need to access the first brain 
     available (i.e., the default brain). We then set the default brain as the brain that will be controlled.
     """
     # Get the default brain
@@ -54,21 +83,17 @@ def train_wrapper(env_config, wrapper_config):
     # Assign the default brain as the brain to be controlled
     brain = env.brains[brain_name]
 
-
     """
-    #############################################
-    STEP 4: Determine the size of the Action and State Spaces and the Number of Agents
-    
-    The observation space consists of 33 variables corresponding to
-    position, rotation, velocity, and angular velocities of the arm. 
-    Each action is a vector with four numbers, corresponding to torque 
-    applicable to two joints. Every entry in the action vector should 
-    be a number between -1 and 1.
-    
-    The reacher environment can contain multiple agents in the environment to increase training time. 
-    To use multiple (active) training agents we need to know how many there are.
+    Determine the size of the Action and State Spaces and the Number of Agents.
+    The observation space consists of variables corresponding to Ray Cast in different direction, 
+    velocity and direction.  
+    Each action is a vector with 2 numbers, corresponding to steer left/right and brake/drive (in this order).
+    each action is a number between -1 and 1.
+    num_agents will correspond to the number of agent using the same brain -
+    (since all cars use the same action / observation space they all use the same brain)
+    if in the future one should have different cars use different observation space, 
+    one will need to split them into different brains..
     """
-
     # Set the number of actions or action size
     action_size = brain.vector_action_space_size
 
@@ -81,8 +106,7 @@ def train_wrapper(env_config, wrapper_config):
     print('\nNumber of Agents: ', num_agents)
 
     """
-    ###################################
-    STEP 5: Create an Agent from the Agent Class in Agent.py
+    Create an Agent from the Agent Class in Agent.py
     Any agent initialized with the following parameters.
         ======
         state_size (int): dimension of each state (required)
@@ -93,12 +117,8 @@ def train_wrapper(env_config, wrapper_config):
     Here we initialize an agent using the Unity environments state and action size and number of Agents
     determined above.
     """
-    if agent_type == 'ddpg':
-        agent = DDPGAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
-    elif agent_type == 'mddpg':
-        agent = MDDPGAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
-    else:
-        agent = MADDPGAgent(state_size=state_size, action_size=action_size[0], num_agents=num_agents, random_seed=0)
+    agent: AgentABC = agent_type(state_size=state_size,
+                                 action_size=action_size[0], num_agents=num_agents, random_seed=0)
 
     # Load trained model weights
     if load_weights:
@@ -108,8 +128,8 @@ def train_wrapper(env_config, wrapper_config):
 
     """
     ###################################
-    STEP 6: Run the DDPG Training Sequence
-    The DDPG Training Process involves the agent learning from repeated episodes of behaviour 
+    STEP 6: Run the Training Sequence
+    The Training Process involves the agent learning from repeated episodes of behaviour 
     to map states to actions the maximize rewards received via environmental interaction.
     
     The agent training process involves the following:
@@ -126,7 +146,7 @@ def train_wrapper(env_config, wrapper_config):
     That is, if the average score for the previous 100 episodes is greater than solved_score.
     """
 
-    best_score = -np.inf
+    best_score = -np.inf    # used to determine the best average score so far (for saving best_weights)
     # loop from num_episodes
     for i_episode in range(1, num_episodes+1):
         # reset the unity environment at the beginning of each episode
@@ -143,7 +163,7 @@ def train_wrapper(env_config, wrapper_config):
 
         # Run the episode training loop;
         # At each loop step take an action as a function of the current state observations
-        # Based on the resultant environmental state (next_state) and reward received update the Agents Actor and Critic networks
+        # Based on the resultant environmental state (next_state) and reward received update the agent ('step' method)
         # If environment episode is done, exit loop...
         # Otherwise repeat until done == true
         steps = 0
@@ -179,18 +199,20 @@ def train_wrapper(env_config, wrapper_config):
         episode_scores.append(np.mean(agent_scores))
         average_score = np.mean(episode_scores[i_episode-min(i_episode, scores_average_window):i_episode+1])
 
-        #Print current and average score
+        # Print current and average score, number of steps in episode.
         print('\nEpisode {}\tEpisode Score: {:.3f}\tAverage Score: {:.3f}\tNumber Of Steps{}'.format(
             i_episode, episode_scores[i_episode-1], average_score, steps), end="")
         if print_agent_loss:
+            # print agent's loss (useful for babysitting the training)
             print('\t episode loss: {}'.format(agent.debug_loss))
 
         if save_log:
-            # Save the recorded Scores data
+            # Save the recorded Scores data (in weights path)
             if not (os.path.isdir(weights_path)):
                 os.mkdir(weights_path)
             scores_filename = "Agent_Scores.csv"
-            np.savetxt(os.path.join(weights_path,scores_filename), episode_scores, delimiter=",")
+            # noinspection PyTypeChecker
+            np.savetxt(os.path.join(weights_path, scores_filename), episode_scores, delimiter=",")
 
         # Save trained  Actor and Critic network weights after each episode
         agent.save_weights(weights_path)
@@ -215,4 +237,3 @@ def train_wrapper(env_config, wrapper_config):
     env.close()
 
     # END :) #############
-
