@@ -1,6 +1,7 @@
 ###################################
 # Import Required Packages
 import numpy as np
+import os
 from ddpg.ddpg_agent import Agent as DDPGAgent
 from ddpg.multi_ddpg_agent import Agent as MDDPGAgent
 from maddpg.maddpg_agent import Agent as MADDPGAgent
@@ -14,8 +15,11 @@ def test_wrapper(env_config, wrapper_config):
     ======
             num_episodes (int): number of test episodes    """
     num_episodes = wrapper_config['num_episodes']
-    build = wrapper_config['build']
+    build = None if wrapper_config['build'] == 'None' else wrapper_config['build']
     weights_path = wrapper_config['weights_path']
+    if not (os.path.isdir(weights_path)):
+        print('--weights-path is not a valid directory')
+        raise NotADirectoryError
     agent_type = wrapper_config['agent']
 
     """

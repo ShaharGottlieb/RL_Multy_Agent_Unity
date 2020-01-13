@@ -25,7 +25,7 @@ def train_wrapper(env_config, wrapper_config):
     weights_path = wrapper_config['weights_path']
     load_mem = wrapper_config['load_mem']
     mem_path = wrapper_config['mem_path']
-    build_path = wrapper_config['build']
+    build_path = None if wrapper_config['build'] == 'None' else wrapper_config['build']
     no_graphics_in = wrapper_config['no_graphics']
     agent_type = wrapper_config['agent']
     print_agent_loss = wrapper_config['print_agent_loss']
