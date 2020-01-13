@@ -53,8 +53,8 @@ def main():
     # parse by the train command sub-parser
     train_parser = subparsers.add_parser('train', help='run train mode', parents=[g_parser])
 
-    train_parser.add_argument('--save-memory', action='store_true',
-                              help='save the replay buffer', )
+    train_parser.add_argument('--save-mem', action='store_true',
+                              help='save the replay buffer during training for later use', )
     train_parser.add_argument('--scores-avg-window', choices=range(0, 101), metavar='[0-100]', default=50, type=int,
                               help='number of last scores to average')
     train_parser.add_argument('--load-weights', action='store_true',
@@ -69,11 +69,11 @@ def main():
                               help='add this to show graphics (slows down training)')
     train_parser.add_argument('--print-agent-loss', action='store_true',
                               help='print agent\'s loss after each episode (default=False)')
-    train_parser.add_argument('--save-best-weights', default=True, type=bool,
+    train_parser.add_argument('--save-best-weights', action='store_true',
                               help='save the best weights so far (by average score). saving directory will be the'
-                                   ' same as weights-path with suffix \'best\' default=True')
-    train_parser.add_argument('--save-score-log', default=True, type=bool,
-                              help='saves a csv file with the ongoing scores of each episode (default=True)')
+                                   ' same as weights-path with suffix \'best\' default=False')
+    train_parser.add_argument('--save-score-log', action='store_true',
+                              help='saves a csv file with the ongoing scores of each episode (default=False)')
     args = parser.parse_args()
     if args.num_episodes is None:
         args.num_episodes = 1000 if args.subparser_name == 'train' else 5

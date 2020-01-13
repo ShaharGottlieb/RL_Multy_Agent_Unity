@@ -30,6 +30,8 @@ def train_wrapper(env_config, wrapper_config):
         print('weights dir does not exist')
         raise NotADirectoryError
 
+    # save_mem (bool): whether or not to save memory
+    save_mem = wrapper_config['save_mem']
     # load_mem (bool): whether or not to continue training with loaded memory
     load_mem = wrapper_config['load_mem']
     # mem_path: path to directory containing the memory to load
@@ -221,7 +223,7 @@ def train_wrapper(env_config, wrapper_config):
                 best_score = average_score
                 agent.save_weights(weights_path+'_best')
 
-        if (i_episode % 50) == 0:
+        if save_mem and (i_episode % 50) == 0:
             agent.save_mem(mem_path)
         # Check to see if the task is solved (i.e,. average_score > solved_score over 100 episodes).
         # If yes, save the network weights and scores and end training.
