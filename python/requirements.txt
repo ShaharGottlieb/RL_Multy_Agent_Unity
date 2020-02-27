@@ -1,0 +1,3 @@
+python_version = '3.6'
+torch>=1.1.0
+mlagents===0.7.0
